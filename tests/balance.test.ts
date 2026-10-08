@@ -1,9 +1,10 @@
 // 自動プレイで各職業がどの層まで行けるかを測る（バランスの目安）。
+// 回数を増やすとき: RUNS=150 npx vitest run tests/balance.test.ts
 import { describe, expect, it } from 'vitest';
 import { JOBS } from '../src/data';
 import { simulateRun } from '../src/engine/autoplay';
 
-const RUNS = 40;
+const RUNS = Number(process.env.RUNS ?? 40);
 
 describe('バランス（自動プレイ）', () => {
   it('どの職業でも1層は越えられる可能性がある', () => {

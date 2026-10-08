@@ -16,7 +16,7 @@ import {
 } from '../../engine/run';
 import { STATS, STAT_LABEL } from '../../engine/types';
 import type { App } from '../app';
-import { bar, choose, h, toast } from '../dom';
+import { ask, bar, choose, h, toast } from '../dom';
 import { entryDetail, entryTitle, isRare, skillLine, statsText } from '../describe';
 
 /** 画面上部に出す、パーティーの簡単な状態 */
@@ -284,8 +284,8 @@ function actionButtons(run: RunState, index: number, rerender: () => void) {
       'button',
       {
         class: 'tiny-btn danger',
-        onclick: () => {
-          if (!confirm(`${e.name} を捨てますか？`)) return;
+        onclick: async () => {
+          if (!(await ask(`${e.name} を捨てますか？`, '捨てる'))) return;
           removeFromInventory(run, index);
           rerender();
         },

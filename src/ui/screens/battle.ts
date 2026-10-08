@@ -5,7 +5,7 @@ import { Battle, type Command, type Unit } from '../../engine/battle';
 import { battleHooks, battleRewards, bossCleared, clearSave } from '../../engine/run';
 import { STATUS_LABEL, STAT_LABEL, type Effect, type StatusId, type TargetKind } from '../../engine/types';
 import type { App } from '../app';
-import { bar, h, sleep } from '../dom';
+import { bar, h, sleep, toast } from '../dom';
 import { TARGET_LABEL, costLabel } from '../describe';
 
 type Mode = { kind: 'root' } | { kind: 'skills' } | { kind: 'items' } | { kind: 'target'; label: string; target: 'enemy' | 'ally'; effects: Effect[]; make: (uid: number) => Command };
@@ -168,7 +168,7 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
     try {
       battle.submit(cmd);
     } catch (e) {
-      alert((e as Error).message);
+      toast((e as Error).message);
       return;
     }
     mode = { kind: 'root' };

@@ -5,7 +5,7 @@ import { jobStats } from '../../engine/character';
 import { clearSave, loadRun, newRun, starterBooks } from '../../engine/run';
 import { STATS, STAT_LABEL } from '../../engine/types';
 import type { App } from '../app';
-import { h } from '../dom';
+import { ask, h } from '../dom';
 import { skillLine } from '../describe';
 
 export function titleScreen(app: App) {
@@ -35,8 +35,8 @@ export function titleScreen(app: App) {
         'button',
         {
           class: saved ? 'big' : 'primary big',
-          onclick: () => {
-            if (saved && !confirm('いまのランを捨てて、はじめから遊びますか？')) return;
+          onclick: async () => {
+            if (saved && !(await ask('いまのランを捨てて、はじめから遊びますか？', 'はじめから遊ぶ'))) return;
             clearSave();
             app.go({ name: 'jobs' });
           },

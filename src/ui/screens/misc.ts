@@ -20,7 +20,7 @@ import {
 } from '../../engine/run';
 import { STATS, STAT_LABEL } from '../../engine/types';
 import type { App } from '../app';
-import { h, toast } from '../dom';
+import { ask, h, toast } from '../dom';
 import { entryDetail, entryTitle, isRare, skillLine } from '../describe';
 import { partyBar } from './party';
 
@@ -61,9 +61,9 @@ function leaveButton(label: string, drops: InvEntry[], taken: Set<number>, go: (
     'button',
     {
       class: 'primary big',
-      onclick: () => {
+      onclick: async () => {
         const left = drops.length - taken.size;
-        if (left > 0 && !confirm(`拾っていない物が${left}個あります。置いていきますか？`)) return;
+        if (left > 0 && !(await ask(`拾っていない物が${left}個あります。置いていきますか？`, '置いていく'))) return;
         go();
       },
     },
@@ -331,7 +331,7 @@ export function recruitScreen(app: App) {
         );
       }),
     ),
-    h('button', { class: 'ghost', onclick: () => confirm('だれも仲間にしませんか？') && pickOne(null) }, 'だれも選ばない'),
+    h('button', { class: 'ghost', onclick: async () => (await ask('だれも仲間にしませんか？', '仲間にしない')) && pickOne(null) }, 'だれも選ばない'),
     run.floor >= LAST_PLAYABLE_FLOOR ? h('p', { class: 'muted center' }, '※ 試作版はここまで（2層以降は開発中です）') : null,
   );
 }

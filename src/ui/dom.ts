@@ -85,3 +85,8 @@ export function toast(text: string) {
 }
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** はい／いいえの確認（ブラウザ標準の confirm は使えない環境があるため自前で出す） */
+export async function ask(message: string, yes = 'はい'): Promise<boolean> {
+  return (await choose(message, [{ label: yes, value: true }])) === true;
+}

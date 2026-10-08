@@ -7,6 +7,7 @@ import { characterStats, skillSlots } from './character';
 import { pickEvent } from './events';
 import {
   addToInventory,
+  battleHooks,
   battleRewards,
   bossCleared,
   choices,
@@ -19,7 +20,6 @@ import {
   openShop,
   buy,
   recruit,
-  removeItemByName,
   rest,
   starterBooks,
   treasure,
@@ -29,7 +29,7 @@ import {
 import type { BattleKind } from './battle';
 import { Rng } from './rng';
 
-export function chooseCommand(b: Battle, u: Unit, rng: Rng): Command {
+export function chooseCommand(b: Battle, u: Unit, rng: Rng, items: string[] = []): Command {
   const foes = b.alive('enemy');
   const allies = b.alive('player');
   const c = u.char!;
@@ -53,8 +53,6 @@ export function chooseCommand(b: Battle, u: Unit, rng: Rng): Command {
   if (low) {
     const heal = usable.find((s) => s.effects.some((e) => e.kind === 'heal') && s.target !== 'enemy');
     if (heal) return { type: 'skill', skill: heal.name, target: heal.target === 'ally' ? low.uid : undefined };
-    const inv = b.hooks as unknown as { inventory?: () => string[] };
-    const items = inv.inventory?.() ?? [];
     const herb = items.find((n) => ITEM_BY_NAME.get(n)?.effects.some((e) => e.kind === 'heal'));
     if (herb && low === u) return { type: 'item', item: herb, target: ITEM_BY_NAME.get(herb)!.target === 'ally' ? u.uid : undefined };
   }
@@ -75,23 +73,13 @@ export function chooseCommand(b: Battle, u: Unit, rng: Rng): Command {
 }
 
 export function runBattle(run: RunState, enemies: string[], kind: BattleKind, rng: Rng): Battle {
-  const b = new Battle(run.party, enemies, kind, {
-    rng,
-    getGold: () => run.gold,
-    addGold: (n) => (run.gold += n),
-    addItem: (n) => addToInventory(run, { kind: 'item', name: n }),
-    removeItem: (n) => removeItemByName(run, n),
-    breakAccessory: (c, n) => {
-      const i = c.accessories.indexOf(n);
-      if (i >= 0) c.accessories[i] = null;
-    },
-  });
-  (b.hooks as unknown as { inventory: () => string[] }).inventory = () => run.inventory.filter((e) => e.kind === 'item').map((e) => e.name);
+  const b = new Battle(run.party, enemies, kind, battleHooks(run, rng));
   let guard = 0;
   while (guard++ < 2000) {
     const ph = b.advance();
     if (ph === 'input') {
-      const cmd = chooseCommand(b, b.current!, rng);
+      const items = run.inventory.filter((e) => e.kind === 'item').map((e) => e.name);
+      const cmd = chooseCommand(b, b.current!, rng, items);
       try {
         b.submit(cmd);
       } catch {

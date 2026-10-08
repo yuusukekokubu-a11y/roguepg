@@ -8,7 +8,7 @@ import { BALANCE } from './balance';
 import { accessoryMods, characterStats, clampVitals, createCharacter, gainExp, levelUp, skillSlots, type Character } from './character';
 import { generateMap, nextChoices, findNode, type FloorMap, type MapNode } from './map';
 import { Rng } from './rng';
-import type { BattleKind } from './battle';
+import type { BattleHooks, BattleKind } from './battle';
 
 export type InvKind = 'item' | 'book' | 'equip' | 'acc';
 export interface InvEntry {
@@ -391,6 +391,8 @@ export function useFieldItem(run: RunState, invIndex: number, charId?: string): 
   const reviving = it.effects.some((x) => x.kind === 'revive');
   if (it.target === 'ally' && !reviving && targets[0].hp <= 0) return '戦闘不能のキャラには使えません';
   if (reviving && targets[0].hp > 0) return '戦闘不能のキャラにしか使えません';
+  const healOnly = it.effects.every((x) => x.kind === 'heal');
+  if (healOnly && targets.every((c) => c.hp <= 0 || c.hp >= characterStats(c).hp)) return 'HPは満タンです';
   for (const c of targets) {
     const st = characterStats(c);
     for (const x of it.effects) {
@@ -452,6 +454,23 @@ export function recruit(run: RunState, index: number | null) {
 
 export function isPartyDead(run: RunState) {
   return run.party.every((c) => c.hp <= 0);
+}
+
+/** 戦闘からランの持ち物・お金を操作するための接続口 */
+export function battleHooks(run: RunState, rng: Rng = rngOf(run)): BattleHooks {
+  return {
+    rng,
+    getGold: () => run.gold,
+    addGold: (n) => {
+      run.gold = Math.max(0, run.gold + n);
+    },
+    addItem: (n) => addToInventory(run, { kind: 'item', name: n }),
+    removeItem: (n) => removeItemByName(run, n),
+    breakAccessory: (c, n) => {
+      const i = c.accessories.indexOf(n);
+      if (i >= 0) c.accessories[i] = null;
+    },
+  };
 }
 
 // ───────────────────────── 保存 ─────────────────────────

@@ -1,0 +1,530 @@
+[
+  {
+    "category": "対象を変える",
+    "name": "拡散の指輪",
+    "rarity": "通常",
+    "effect": "単体の技が全体になる",
+    "drawback": "威力半減",
+    "synergy": "黒魔道士・一撃型／白魔道士・回復型"
+  },
+  {
+    "category": "対象を変える",
+    "name": "集束のお守り",
+    "rarity": "通常",
+    "effect": "全体の技が単体になる",
+    "drawback": "—（威力1.5倍）",
+    "synergy": "黒魔道士・範囲型／狩人・弾幕型"
+  },
+  {
+    "category": "対象を変える",
+    "name": "前衛の紋章",
+    "rarity": "通常",
+    "effect": "前列が対象の技が全体になる",
+    "drawback": "MP消費1.5倍",
+    "synergy": "戦士・豪腕型／侍・居合型"
+  },
+  {
+    "category": "対象を変える",
+    "name": "気まぐれのサイコロ",
+    "rarity": "通常",
+    "effect": "単体の技がランダムな敵に2回当たる",
+    "drawback": "狙う相手を選べない",
+    "synergy": "踊り子・剣舞型／盗賊・毒刃型"
+  },
+  {
+    "category": "対象を変える",
+    "name": "分け身の鏡",
+    "rarity": "レア",
+    "effect": "味方単体への技が味方全体になる",
+    "drawback": "MP消費2倍",
+    "synergy": "吟遊詩人・英雄譚型／白魔道士・回復型"
+  },
+  {
+    "category": "コストを変える",
+    "name": "血の契約",
+    "rarity": "通常",
+    "effect": "MP消費の代わりにHPを消費する",
+    "drawback": "—",
+    "synergy": "暗黒騎士・捨て身型／黒魔道士"
+  },
+  {
+    "category": "コストを変える",
+    "name": "節約の腕輪",
+    "rarity": "通常",
+    "effect": "MP消費30%減",
+    "drawback": "威力20%減",
+    "synergy": "赤魔道士・万能型／召喚士"
+  },
+  {
+    "category": "コストを変える",
+    "name": "魔力の借金",
+    "rarity": "通常",
+    "effect": "MPが足りなくても技が使える（足りない分はHPで払う）",
+    "drawback": "—",
+    "synergy": "黒魔道士・範囲型／召喚士・大召喚型"
+  },
+  {
+    "category": "コストを変える",
+    "name": "生命の泉石",
+    "rarity": "通常",
+    "effect": "戦闘終了時にMP回復小",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "コストを変える",
+    "name": "無限の杯",
+    "rarity": "レア",
+    "effect": "MP消費0",
+    "drawback": "毎ターンHPが減る",
+    "synergy": "黒魔道士／赤魔道士・連続魔型"
+  },
+  {
+    "category": "条件で発動",
+    "name": "背水の指輪",
+    "rarity": "通常",
+    "effect": "HPが1/3以下のとき攻撃力・魔力大アップ",
+    "drawback": "—",
+    "synergy": "暗黒騎士・捨て身型"
+  },
+  {
+    "category": "条件で発動",
+    "name": "余裕のブローチ",
+    "rarity": "通常",
+    "effect": "HPが満タンのとき威力アップ",
+    "drawback": "—",
+    "synergy": "騎士・聖騎士型と組んだアタッカー"
+  },
+  {
+    "category": "条件で発動",
+    "name": "怒りの首飾り",
+    "rarity": "通常",
+    "effect": "ダメージを受けるたび攻撃力アップ（戦闘中ずっと）",
+    "drawback": "—",
+    "synergy": "騎士・反撃型／戦士・鼓舞型"
+  },
+  {
+    "category": "条件で発動",
+    "name": "先駆けの羽",
+    "rarity": "通常",
+    "effect": "戦闘開始時、行動順が最速になる",
+    "drawback": "—",
+    "synergy": "吟遊詩人・疾風歌型／盗賊・速攻型"
+  },
+  {
+    "category": "条件で発動",
+    "name": "狩人の勘",
+    "rarity": "通常",
+    "effect": "敵を倒すと次の行動順が早まる",
+    "drawback": "—",
+    "synergy": "狩人・狙撃型／侍・疾風型"
+  },
+  {
+    "category": "条件で発動",
+    "name": "弔いの指輪",
+    "rarity": "通常",
+    "effect": "仲間が戦闘不能になると全ステータス大アップ",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "条件で発動",
+    "name": "孤高の指輪",
+    "rarity": "通常",
+    "effect": "自分以外が全員戦闘不能（またはソロ）のとき全ステータス特大アップ",
+    "drawback": "—",
+    "synergy": "1層のソロ主人公／最後の砦役"
+  },
+  {
+    "category": "条件で発動",
+    "name": "不死鳥の羽",
+    "rarity": "レア",
+    "effect": "戦闘中1回だけ、戦闘不能になる攻撃をHP1で耐える",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "状態異常",
+    "name": "毒牙のピアス",
+    "rarity": "通常",
+    "effect": "物理攻撃に毒がつく",
+    "drawback": "—",
+    "synergy": "盗賊・毒刃型／暗黒騎士・呪い剣型"
+  },
+  {
+    "category": "状態異常",
+    "name": "炎の指輪",
+    "rarity": "通常",
+    "effect": "魔法攻撃にやけどがつく",
+    "drawback": "—",
+    "synergy": "黒魔道士／赤魔道士・魔法剣型"
+  },
+  {
+    "category": "状態異常",
+    "name": "混沌のお守り",
+    "rarity": "通常",
+    "effect": "攻撃時に低確率で混乱させる",
+    "drawback": "—",
+    "synergy": "踊り子・剣舞型"
+  },
+  {
+    "category": "状態異常",
+    "name": "毒使いの手袋",
+    "rarity": "通常",
+    "effect": "自分がかけた毒のダメージアップ",
+    "drawback": "—",
+    "synergy": "呪術師・毒型／盗賊・毒刃型"
+  },
+  {
+    "category": "状態異常",
+    "name": "疫病の王冠",
+    "rarity": "レア",
+    "effect": "自分がかけた状態異常の継続ターン2倍",
+    "drawback": "—",
+    "synergy": "呪術師・呪殺型／錬金術師・劇薬型"
+  },
+  {
+    "category": "状態異常",
+    "name": "呪われた首輪",
+    "rarity": "通常",
+    "effect": "攻撃力大アップ",
+    "drawback": "常に毒状態",
+    "synergy": "暗黒騎士・吸血型（吸収で相殺）"
+  },
+  {
+    "category": "状態異常",
+    "name": "逆転の紋章",
+    "rarity": "通常",
+    "effect": "自分が状態異常のとき威力アップ",
+    "drawback": "—",
+    "synergy": "呪われた首輪と組み合わせ"
+  },
+  {
+    "category": "状態異常",
+    "name": "毒除けのお守り",
+    "rarity": "通常",
+    "effect": "毒にかからない",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "状態異常",
+    "name": "万能のお守り",
+    "rarity": "通常",
+    "effect": "状態異常にかかりにくい",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "行動を変える",
+    "name": "瞬きの指輪",
+    "rarity": "通常",
+    "effect": "溜めが不要になる",
+    "drawback": "威力30%減",
+    "synergy": "侍・居合型／召喚士・大召喚型"
+  },
+  {
+    "category": "行動を変える",
+    "name": "忍耐の帯",
+    "rarity": "通常",
+    "effect": "溜め技の威力がさらにアップ",
+    "drawback": "素早さダウン",
+    "synergy": "侍・居合型／戦士・豪腕型"
+  },
+  {
+    "category": "行動を変える",
+    "name": "双子の指輪",
+    "rarity": "通常",
+    "effect": "複数回攻撃の回数＋1",
+    "drawback": "1回ごとの威力ダウン",
+    "synergy": "戦士・連撃型／踊り子・剣舞型"
+  },
+  {
+    "category": "行動を変える",
+    "name": "吸血の牙",
+    "rarity": "通常",
+    "effect": "物理攻撃に吸収がつく",
+    "drawback": "—",
+    "synergy": "暗黒騎士・吸血型"
+  },
+  {
+    "category": "行動を変える",
+    "name": "反射の盾片",
+    "rarity": "通常",
+    "effect": "反撃の威力アップ",
+    "drawback": "—",
+    "synergy": "騎士・反撃型／狩人・罠型"
+  },
+  {
+    "category": "行動を変える",
+    "name": "影の外套",
+    "rarity": "通常",
+    "effect": "回避アップ",
+    "drawback": "防御ダウン",
+    "synergy": "侍・見切り型／盗賊・速攻型"
+  },
+  {
+    "category": "行動を変える",
+    "name": "挑発の角笛",
+    "rarity": "通常",
+    "effect": "常に挑発状態になる",
+    "drawback": "—",
+    "synergy": "騎士・守護型"
+  },
+  {
+    "category": "行動を変える",
+    "name": "守り手の誓い",
+    "rarity": "通常",
+    "effect": "かばうときに受けるダメージ半減",
+    "drawback": "—",
+    "synergy": "騎士・守護型"
+  },
+  {
+    "category": "行動を変える",
+    "name": "長き調べの笛",
+    "rarity": "通常",
+    "effect": "数ターン続く効果のターン数＋1",
+    "drawback": "—",
+    "synergy": "吟遊詩人・守護歌型／召喚士・精霊型"
+  },
+  {
+    "category": "行動を変える",
+    "name": "時の砂時計",
+    "rarity": "レア",
+    "effect": "戦闘の最初のターンだけ連続行動できる",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "回復・支援",
+    "name": "慈愛のロザリオ",
+    "rarity": "通常",
+    "effect": "回復量アップ",
+    "drawback": "攻撃力ダウン",
+    "synergy": "白魔道士・回復型／錬金術師・薬師型"
+  },
+  {
+    "category": "回復・支援",
+    "name": "祈りの数珠",
+    "rarity": "通常",
+    "effect": "毎ターンHP少し回復",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "回復・支援",
+    "name": "聖者の加護",
+    "rarity": "通常",
+    "effect": "自分の蘇生で復活した仲間のHPが半分になる",
+    "drawback": "—",
+    "synergy": "白魔道士・回復型"
+  },
+  {
+    "category": "回復・支援",
+    "name": "歌い手の喉飾り",
+    "rarity": "通常",
+    "effect": "自分がかける強化の効果アップ",
+    "drawback": "—",
+    "synergy": "吟遊詩人／踊り子・応援型"
+  },
+  {
+    "category": "回復・支援",
+    "name": "共鳴の鈴",
+    "rarity": "通常",
+    "effect": "味方にかけた強化を自分にもかける",
+    "drawback": "—",
+    "synergy": "吟遊詩人・英雄譚型"
+  },
+  {
+    "category": "回復・支援",
+    "name": "天使の輪",
+    "rarity": "レア",
+    "effect": "回復した量の一部が味方全体にも届く",
+    "drawback": "—",
+    "synergy": "白魔道士・回復型"
+  },
+  {
+    "category": "守り",
+    "name": "前衛の鎧飾り",
+    "rarity": "通常",
+    "effect": "前列にいるとき防御大アップ",
+    "drawback": "—",
+    "synergy": "騎士／戦士"
+  },
+  {
+    "category": "守り",
+    "name": "後衛のマント",
+    "rarity": "通常",
+    "effect": "後列にいるとき回避アップ",
+    "drawback": "—",
+    "synergy": "魔法系全般／狩人"
+  },
+  {
+    "category": "守り",
+    "name": "魔法障壁の護符",
+    "rarity": "通常",
+    "effect": "魔法ダメージ軽減",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "守り",
+    "name": "根性のハチマキ",
+    "rarity": "通常",
+    "effect": "HPが満タンのとき、一撃で倒れない",
+    "drawback": "—",
+    "synergy": "黒魔道士など打たれ弱い職業"
+  },
+  {
+    "category": "守り",
+    "name": "身代わり人形",
+    "rarity": "レア",
+    "effect": "戦闘不能になる攻撃を1回だけ無効にして壊れる",
+    "drawback": "1回使うとなくなる",
+    "synergy": "全般"
+  },
+  {
+    "category": "お金・報酬",
+    "name": "金運の財布",
+    "rarity": "通常",
+    "effect": "戦闘で得るお金アップ",
+    "drawback": "—",
+    "synergy": "盗賊・強奪型"
+  },
+  {
+    "category": "お金・報酬",
+    "name": "値切りの口上",
+    "rarity": "通常",
+    "effect": "ショップで安く買える",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "お金・報酬",
+    "name": "商人の秤",
+    "rarity": "通常",
+    "effect": "ショップでの売値アップ",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "お金・報酬",
+    "name": "目利きの眼鏡",
+    "rarity": "通常",
+    "effect": "戦闘後の報酬にスキルブックが出やすい",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "お金・報酬",
+    "name": "欲張りの袋",
+    "rarity": "通常",
+    "effect": "持ち物の上限＋2",
+    "drawback": "素早さダウン",
+    "synergy": "全般"
+  },
+  {
+    "category": "お金・報酬",
+    "name": "黄金の手",
+    "rarity": "レア",
+    "effect": "攻撃するたびにお金を得る",
+    "drawback": "—",
+    "synergy": "盗賊・強奪型／踊り子・剣舞型"
+  },
+  {
+    "category": "ハイリスク",
+    "name": "ガラスの剣飾り",
+    "rarity": "通常",
+    "effect": "攻撃力・魔力特大アップ",
+    "drawback": "最大HPが半分",
+    "synergy": "後列のアタッカー"
+  },
+  {
+    "category": "ハイリスク",
+    "name": "鈍重の鎖",
+    "rarity": "通常",
+    "effect": "防御大アップ",
+    "drawback": "素早さ大ダウン",
+    "synergy": "騎士・守護型"
+  },
+  {
+    "category": "ハイリスク",
+    "name": "賭博師のコイン",
+    "rarity": "通常",
+    "effect": "技の威力が50%で2倍",
+    "drawback": "50%で半分",
+    "synergy": "全般"
+  },
+  {
+    "category": "ハイリスク",
+    "name": "寡黙の指輪",
+    "rarity": "通常",
+    "effect": "攻撃力大アップ",
+    "drawback": "味方からの回復・強化を受けられない",
+    "synergy": "暗黒騎士・吸血型"
+  },
+  {
+    "category": "ハイリスク",
+    "name": "狂戦士の仮面",
+    "rarity": "レア",
+    "effect": "攻撃力特大アップ",
+    "drawback": "通常攻撃しかできない（コマンドを選べない）",
+    "synergy": "戦士・連撃型（双子の指輪と）"
+  },
+  {
+    "category": "ステータス",
+    "name": "力の指輪",
+    "rarity": "通常",
+    "effect": "攻撃力アップ",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "ステータス",
+    "name": "守りの指輪",
+    "rarity": "通常",
+    "effect": "防御力アップ",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "ステータス",
+    "name": "魔力の指輪",
+    "rarity": "通常",
+    "effect": "魔力アップ",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "ステータス",
+    "name": "精神の指輪",
+    "rarity": "通常",
+    "effect": "精神アップ",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "ステータス",
+    "name": "疾風の指輪",
+    "rarity": "通常",
+    "effect": "素早さアップ",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "ステータス",
+    "name": "生命の指輪",
+    "rarity": "通常",
+    "effect": "最大HPアップ",
+    "drawback": "—",
+    "synergy": "全般"
+  },
+  {
+    "category": "ステータス",
+    "name": "魔素の指輪",
+    "rarity": "通常",
+    "effect": "最大MPアップ",
+    "drawback": "—",
+    "synergy": "全般"
+  }
+]

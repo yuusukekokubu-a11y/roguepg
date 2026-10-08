@@ -1,0 +1,254 @@
+[
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "name": "豪腕型",
+    "description": "溜めてから単発の大ダメージ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "name": "連撃型",
+    "description": "複数回攻撃で手数を稼ぐ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "name": "鼓舞型",
+    "description": "自分を強化し続けてから殴る"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "name": "守護型",
+    "description": "かばう・挑発で攻撃を一手に引き受ける"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "name": "反撃型",
+    "description": "攻撃を受けるたびに反撃する"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "name": "聖騎士型",
+    "description": "味方全体の防御を上げ、少し回復もする"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "name": "捨て身型",
+    "description": "HPを削って大ダメージを連発"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "name": "吸血型",
+    "description": "攻撃しながら回復して粘る"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "name": "呪い剣型",
+    "description": "攻撃に状態異常を乗せる"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "name": "居合型",
+    "description": "溜めの大技で一撃必殺"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "name": "見切り型",
+    "description": "回避と反撃で戦う"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "name": "疾風型",
+    "description": "素早さが高いほど威力が上がる"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "name": "回復型",
+    "description": "単体・全体の回復と蘇生"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "name": "結界型",
+    "description": "防御・精神を上げてダメージを防ぐ"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "name": "浄化型",
+    "description": "状態異常を治す・予防する"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "name": "一撃型",
+    "description": "単体に大魔法"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "name": "範囲型",
+    "description": "敵全体を魔法でまとめて削る"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "name": "状態異常型",
+    "description": "やけどや素早さダウンで弱らせながら削る"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "name": "魔法剣型",
+    "description": "物理攻撃に魔力を上乗せ"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "name": "連続魔型",
+    "description": "1ターンに魔法を2回唱える"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "name": "万能型",
+    "description": "小回復と小強化で穴を埋める"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "name": "毒型",
+    "description": "毒を重ねてじわじわ削る"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "name": "弱体型",
+    "description": "敵のステータスを下げまくる"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "name": "呪殺型",
+    "description": "状態異常が多い敵ほど大ダメージ"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "name": "毒刃型",
+    "description": "速い攻撃に毒を乗せる"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "name": "速攻型",
+    "description": "行動順を早めて何度も動く"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "name": "強奪型",
+    "description": "戦闘でお金やアイテムを多く得る"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "name": "狙撃型",
+    "description": "弱った敵に大ダメージ"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "name": "弾幕型",
+    "description": "敵全体に複数回攻撃"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "name": "罠型",
+    "description": "罠を張り、攻撃してきた敵にダメージ"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "name": "爆薬型",
+    "description": "敵全体に爆発ダメージ"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "name": "薬師型",
+    "description": "回復と状態異常の治療"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "name": "劇薬型",
+    "description": "自分のHPを削って強い状態異常をばらまく"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "name": "英雄譚型",
+    "description": "味方全体の攻撃力アップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "name": "守護歌型",
+    "description": "味方全体の防御アップ＋毎ターン少し回復"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "name": "疾風歌型",
+    "description": "味方全体の素早さアップ・行動順を早める"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "name": "剣舞型",
+    "description": "ランダムな敵に複数回攻撃"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "name": "幻惑型",
+    "description": "混乱や行動順の遅延で敵を妨害"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "name": "応援型",
+    "description": "味方の行動順を早める"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "name": "精霊型",
+    "description": "数ターン、毎ターン敵にダメージを与え続ける"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "name": "守護獣型",
+    "description": "数ターン、味方の受けるダメージを減らす"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "name": "大召喚型",
+    "description": "長く溜めて超大ダメージ"
+  }
+]

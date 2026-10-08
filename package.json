@@ -1,0 +1,20 @@
+{
+  "name": "roguepg",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "import-data": "node scripts/import-xlsx.mjs"
+  },
+  "devDependencies": {
+    "exceljs": "^4.4.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.4",
+    "vitest": "^3.2.7"
+  }
+}

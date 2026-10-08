@@ -1,0 +1,2102 @@
+[
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "豪腕型",
+    "name": "強打",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ大"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "豪腕型",
+    "name": "力溜め",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "なし",
+    "effect": "溜め：次の攻撃の威力2倍"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "豪腕型",
+    "name": "叩き割り",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中＋防御ダウン"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "豪腕型",
+    "name": "大振り",
+    "rarity": "通常",
+    "target": "前列",
+    "cost": "MP中",
+    "effect": "物理ダメージ中"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "豪腕型",
+    "name": "渾身の一撃",
+    "rarity": "レア",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "溜め：次のターンに物理ダメージ特大"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "連撃型",
+    "name": "二段斬り",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ小×2回"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "連撃型",
+    "name": "乱れ打ち",
+    "rarity": "通常",
+    "target": "ランダム",
+    "cost": "MP中",
+    "effect": "物理ダメージ小×3〜4回"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "連撃型",
+    "name": "なぎ払い",
+    "rarity": "通常",
+    "target": "前列",
+    "cost": "MP小",
+    "effect": "物理ダメージ小"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "連撃型",
+    "name": "追い打ち",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中／状態異常の敵に威力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "連撃型",
+    "name": "百裂撃",
+    "rarity": "レア",
+    "target": "ランダム",
+    "cost": "MP大",
+    "effect": "物理ダメージ小×6回"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "鼓舞型",
+    "name": "雄叫び",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "攻撃力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "鼓舞型",
+    "name": "闘志",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "素早さアップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "鼓舞型",
+    "name": "気合い",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "なし",
+    "effect": "HP回復小"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "鼓舞型",
+    "name": "鬼神化",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "HP中",
+    "effect": "攻撃力大アップ＋防御ダウン"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "戦士",
+    "archetype": "鼓舞型",
+    "name": "無双",
+    "rarity": "レア",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "物理ダメージ大／自分にかかった強化の数だけ威力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "守護型",
+    "name": "かばう",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "なし",
+    "effect": "かばう（1ターン）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "守護型",
+    "name": "挑発",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "挑発"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "守護型",
+    "name": "鉄壁",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "防御力大アップ（数ターン）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "守護型",
+    "name": "仁王立ち",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP中",
+    "effect": "挑発＋防御力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "守護型",
+    "name": "聖なる盾",
+    "rarity": "レア",
+    "target": "味方全体",
+    "cost": "MP大",
+    "effect": "受けるダメージ半減（1ターン）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "反撃型",
+    "name": "構え",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "反撃（1ターン）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "反撃型",
+    "name": "盾撃",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中／防御力が高いほど威力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "反撃型",
+    "name": "報復の剣",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中／自分のHPが減っているほど威力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "反撃型",
+    "name": "返し刃",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP中",
+    "effect": "反撃（数ターン）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "反撃型",
+    "name": "不屈の反撃",
+    "rarity": "レア",
+    "target": "自分",
+    "cost": "MP大",
+    "effect": "反撃＋防御力アップ（数ターン）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "聖騎士型",
+    "name": "守りの誓い",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "防御力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "聖騎士型",
+    "name": "癒しの手",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "HP回復小"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "聖騎士型",
+    "name": "聖剣",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "魔法ダメージ中"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "聖騎士型",
+    "name": "加護",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "精神アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "騎士",
+    "archetype": "聖騎士型",
+    "name": "聖光陣",
+    "rarity": "レア",
+    "target": "味方全体",
+    "cost": "MP大",
+    "effect": "毎ターンHP回復（数ターン）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "捨て身型",
+    "name": "暗黒剣",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "HP小",
+    "effect": "物理ダメージ大"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "捨て身型",
+    "name": "暗黒波",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "HP中",
+    "effect": "物理ダメージ中"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "捨て身型",
+    "name": "捨て身",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "なし",
+    "effect": "攻撃力大アップ＋防御ダウン"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "捨て身型",
+    "name": "血の誓い",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "HP中",
+    "effect": "攻撃力アップ（数ターン）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "捨て身型",
+    "name": "冥府の一撃",
+    "rarity": "レア",
+    "target": "単体",
+    "cost": "HP中",
+    "effect": "物理ダメージ大／自分のHPが低いほど威力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "吸血型",
+    "name": "吸血斬り",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中＋吸収"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "吸血型",
+    "name": "生命吸収",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "魔法ダメージ小＋吸収"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "吸血型",
+    "name": "渇き",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "攻撃に吸収がつく（数ターン）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "吸血型",
+    "name": "闇の抱擁",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "物理ダメージ中＋吸収／自分のHPが低いほど吸収量アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "吸血型",
+    "name": "血の饗宴",
+    "rarity": "レア",
+    "target": "全体",
+    "cost": "MP大",
+    "effect": "物理ダメージ中＋吸収"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "呪い剣型",
+    "name": "毒の剣",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中＋毒"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "呪い剣型",
+    "name": "業火剣",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中＋やけど"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "呪い剣型",
+    "name": "呪縛剣",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "物理ダメージ小＋スタン"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "呪い剣型",
+    "name": "災いの刃",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中／状態異常の敵に威力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "暗黒騎士",
+    "archetype": "呪い剣型",
+    "name": "呪い喰らい",
+    "rarity": "レア",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "物理ダメージ大／敵の状態異常の数だけ威力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "居合型",
+    "name": "居合",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "溜め：次のターンに物理ダメージ大"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "居合型",
+    "name": "抜刀術",
+    "rarity": "通常",
+    "target": "前列",
+    "cost": "MP中",
+    "effect": "溜め：次のターンに物理ダメージ中"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "居合型",
+    "name": "精神統一",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "なし",
+    "effect": "溜め：次の攻撃の威力アップ＋素早さアップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "居合型",
+    "name": "斬鉄",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "物理ダメージ中＋防御ダウン"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "居合型",
+    "name": "一刀両断",
+    "rarity": "レア",
+    "target": "単体",
+    "cost": "MP大",
+    "effect": "溜め：次のターンに物理ダメージ特大"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "見切り型",
+    "name": "見切り",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "回避＋反撃（1回）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "見切り型",
+    "name": "受け流し",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "回避アップ（数ターン）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "見切り型",
+    "name": "返し技",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中／直前に攻撃してきた敵に威力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "見切り型",
+    "name": "柳の構え",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP中",
+    "effect": "反撃（数ターン）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "見切り型",
+    "name": "無念無想",
+    "rarity": "レア",
+    "target": "自分",
+    "cost": "MP大",
+    "effect": "回避アップ＋反撃（数ターン）"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "疾風型",
+    "name": "燕返し",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ小×2回"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "疾風型",
+    "name": "疾風斬り",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中／素早さが高いほど威力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "疾風型",
+    "name": "神速",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "行動順を早める"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "疾風型",
+    "name": "風切り",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "物理ダメージ小／素早さが高いほど威力アップ"
+  },
+  {
+    "lineage": "剣士系",
+    "job": "侍",
+    "archetype": "疾風型",
+    "name": "一閃",
+    "rarity": "レア",
+    "target": "全体",
+    "cost": "MP大",
+    "effect": "物理ダメージ大／素早さが高いほど威力アップ"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "回復型",
+    "name": "癒しの光",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "HP回復中"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "回復型",
+    "name": "癒しの雨",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "HP回復小"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "回復型",
+    "name": "大いなる癒し",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP中",
+    "effect": "HP回復大"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "回復型",
+    "name": "蘇生",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP大",
+    "effect": "蘇生"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "回復型",
+    "name": "大蘇生",
+    "rarity": "レア",
+    "target": "味方全体",
+    "cost": "MP大",
+    "effect": "蘇生＋HP回復"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "結界型",
+    "name": "守りの光",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "防御力アップ"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "結界型",
+    "name": "魔除け",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "精神アップ"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "結界型",
+    "name": "光の壁",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "受けるダメージ軽減（数ターン）"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "結界型",
+    "name": "祈り",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "毎ターンHP回復小（数ターン）"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "結界型",
+    "name": "聖域",
+    "rarity": "レア",
+    "target": "味方全体",
+    "cost": "MP大",
+    "effect": "毎ターンHP回復＋状態異常を防ぐ（数ターン）"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "浄化型",
+    "name": "浄化",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "状態異常を治す"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "浄化型",
+    "name": "清めの風",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "状態異常を治す"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "浄化型",
+    "name": "加護の光",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "状態異常を防ぐ（数ターン）"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "浄化型",
+    "name": "解呪",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "敵の強化を打ち消す"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "白魔道士",
+    "archetype": "浄化型",
+    "name": "天恵",
+    "rarity": "レア",
+    "target": "味方全体",
+    "cost": "MP大",
+    "effect": "状態異常を治す＋HP回復中"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "一撃型",
+    "name": "火炎",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "魔法ダメージ中＋やけど"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "一撃型",
+    "name": "雷撃",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "魔法ダメージ大"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "一撃型",
+    "name": "魔力集中",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "溜め：次の魔法の威力2倍"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "一撃型",
+    "name": "冥炎",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "魔法ダメージ大／HPが多い敵に威力アップ"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "一撃型",
+    "name": "滅びの雷",
+    "rarity": "レア",
+    "target": "単体",
+    "cost": "MP大",
+    "effect": "魔法ダメージ特大"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "範囲型",
+    "name": "炎の嵐",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "魔法ダメージ小＋やけど"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "範囲型",
+    "name": "雷の雨",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "魔法ダメージ中"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "範囲型",
+    "name": "氷の波",
+    "rarity": "通常",
+    "target": "前列",
+    "cost": "MP小",
+    "effect": "魔法ダメージ小＋素早さダウン"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "範囲型",
+    "name": "連鎖雷",
+    "rarity": "通常",
+    "target": "ランダム",
+    "cost": "MP中",
+    "effect": "魔法ダメージ小×3回"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "範囲型",
+    "name": "隕石",
+    "rarity": "レア",
+    "target": "全体",
+    "cost": "MP全部",
+    "effect": "魔法ダメージ特大"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "状態異常型",
+    "name": "氷結",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "魔法ダメージ小＋素早さダウン"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "状態異常型",
+    "name": "灼熱",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "やけど"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "状態異常型",
+    "name": "麻痺の雷",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "魔法ダメージ小＋スタン"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "状態異常型",
+    "name": "魔力の毒",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "毒＋精神ダウン"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "黒魔道士",
+    "archetype": "状態異常型",
+    "name": "終焉の炎",
+    "rarity": "レア",
+    "target": "全体",
+    "cost": "MP大",
+    "effect": "魔法ダメージ大／状態異常の敵に威力アップ"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "魔法剣型",
+    "name": "魔法剣",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理＋魔法ダメージ"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "魔法剣型",
+    "name": "炎の剣",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中＋やけど"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "魔法剣型",
+    "name": "雷の剣",
+    "rarity": "通常",
+    "target": "前列",
+    "cost": "MP中",
+    "effect": "物理＋魔法ダメージ小"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "魔法剣型",
+    "name": "魔力付与",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "攻撃に魔法ダメージが上乗せされる（数ターン）"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "魔法剣型",
+    "name": "双魔剣",
+    "rarity": "レア",
+    "target": "単体",
+    "cost": "MP大",
+    "effect": "物理＋魔法ダメージ×2回"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "連続魔型",
+    "name": "連続魔",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP中",
+    "effect": "連続行動：このターン魔法を2回"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "連続魔型",
+    "name": "小火炎",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "魔法ダメージ小＋やけど"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "連続魔型",
+    "name": "小雷撃",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "魔法ダメージ小"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "連続魔型",
+    "name": "魔力循環",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "なし",
+    "effect": "MP回復小"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "連続魔型",
+    "name": "三重詠唱",
+    "rarity": "レア",
+    "target": "自分",
+    "cost": "MP大",
+    "effect": "連続行動：このターン魔法を3回"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "万能型",
+    "name": "癒しの風",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP小",
+    "effect": "HP回復小"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "万能型",
+    "name": "小さな加護",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "攻撃力＋防御力アップ小"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "万能型",
+    "name": "応急処置",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "HP回復小＋状態異常を治す"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "万能型",
+    "name": "小蘇生",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP大",
+    "effect": "蘇生（HPわずか）"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "赤魔道士",
+    "archetype": "万能型",
+    "name": "万能の極意",
+    "rarity": "レア",
+    "target": "自分",
+    "cost": "MP大",
+    "effect": "全ステータスアップ（数ターン）"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "毒型",
+    "name": "毒の呪い",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "毒"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "毒型",
+    "name": "毒霧",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "毒"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "毒型",
+    "name": "猛毒",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "強い毒"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "毒型",
+    "name": "毒の滴り",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "魔法ダメージ中／毒の敵に威力アップ"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "毒型",
+    "name": "腐蝕",
+    "rarity": "レア",
+    "target": "全体",
+    "cost": "MP大",
+    "effect": "毎ターン毒を重ねる（数ターン）"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "弱体型",
+    "name": "弱体",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "攻撃力＋防御力ダウン"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "弱体型",
+    "name": "鈍化",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "素早さ大ダウン"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "弱体型",
+    "name": "魔封じ",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "魔力＋精神ダウン"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "弱体型",
+    "name": "衰弱の霧",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "攻撃力ダウン"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "弱体型",
+    "name": "全能封じ",
+    "rarity": "レア",
+    "target": "全体",
+    "cost": "MP大",
+    "effect": "全ステータスダウン"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "呪殺型",
+    "name": "呪詛",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "魔法ダメージ中／敵の状態異常の数だけ威力アップ"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "呪殺型",
+    "name": "怨嗟",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "魔法ダメージ小／敵の状態異常の数だけ威力アップ"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "呪殺型",
+    "name": "混乱の呪い",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "混乱"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "呪殺型",
+    "name": "呪縛",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "スタン"
+  },
+  {
+    "lineage": "魔法系",
+    "job": "呪術師",
+    "archetype": "呪殺型",
+    "name": "死の宣告",
+    "rarity": "レア",
+    "target": "単体",
+    "cost": "MP大",
+    "effect": "魔法ダメージ特大／敵の状態異常の数だけ威力アップ"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "毒刃型",
+    "name": "毒刃",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ小＋毒"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "毒刃型",
+    "name": "二刀毒刃",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "物理ダメージ小×2回＋毒"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "毒刃型",
+    "name": "急所突き",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中／毒の敵に威力アップ"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "毒刃型",
+    "name": "毒塗り",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "攻撃に毒がつく（数ターン）"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "毒刃型",
+    "name": "致命の一刺し",
+    "rarity": "レア",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "物理ダメージ大／毒の敵なら威力特大"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "速攻型",
+    "name": "早業",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ小＋行動順を早める"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "速攻型",
+    "name": "先手必勝",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "なし",
+    "effect": "行動順を早める"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "速攻型",
+    "name": "連続突き",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ小×3回"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "速攻型",
+    "name": "影縫い",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ小＋行動順を遅らせる"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "速攻型",
+    "name": "影分身",
+    "rarity": "レア",
+    "target": "自分",
+    "cost": "MP大",
+    "effect": "回避大アップ（数ターン）"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "強奪型",
+    "name": "盗む",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "なし",
+    "effect": "アイテムを奪う"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "強奪型",
+    "name": "小銭稼ぎ",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ小＋お金を得る"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "強奪型",
+    "name": "目利き",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "この戦闘の報酬アップ"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "強奪型",
+    "name": "足払い",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ小＋スタン"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "盗賊",
+    "archetype": "強奪型",
+    "name": "大泥棒",
+    "rarity": "レア",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "レアなアイテムを奪う"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "狙撃型",
+    "name": "狙い撃ち",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ中／HPが少ない敵に威力アップ"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "狙撃型",
+    "name": "狙いを定める",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "なし",
+    "effect": "溜め：次の攻撃が必ずクリティカル"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "狙撃型",
+    "name": "急所射ち",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "物理ダメージ中／状態異常の敵に威力アップ"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "狙撃型",
+    "name": "足止めの矢",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ小＋素早さダウン"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "狙撃型",
+    "name": "必中の一矢",
+    "rarity": "レア",
+    "target": "単体",
+    "cost": "MP大",
+    "effect": "物理ダメージ大・必ずクリティカル"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "弾幕型",
+    "name": "矢の雨",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "物理ダメージ小"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "弾幕型",
+    "name": "二連射",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ小×2回"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "弾幕型",
+    "name": "乱れ撃ち",
+    "rarity": "通常",
+    "target": "ランダム",
+    "cost": "MP中",
+    "effect": "物理ダメージ小×4回"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "弾幕型",
+    "name": "速射",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "なし",
+    "effect": "物理ダメージ小＋行動順を早める"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "弾幕型",
+    "name": "流星矢",
+    "rarity": "レア",
+    "target": "全体",
+    "cost": "MP大",
+    "effect": "物理ダメージ中×2回"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "罠型",
+    "name": "罠",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "反撃（数ターン）"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "罠型",
+    "name": "毒の罠",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "反撃＋毒（数ターン）"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "罠型",
+    "name": "しびれ罠",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP中",
+    "effect": "反撃＋スタン（数ターン）"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "罠型",
+    "name": "誘いの罠",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP中",
+    "effect": "挑発＋反撃（数ターン）"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "狩人",
+    "archetype": "罠型",
+    "name": "罠の名手",
+    "rarity": "レア",
+    "target": "味方全体",
+    "cost": "MP大",
+    "effect": "味方全体に反撃がつく（数ターン）"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "爆薬型",
+    "name": "火炎瓶",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "魔法ダメージ中＋やけど"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "爆薬型",
+    "name": "爆弾",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "物理ダメージ中"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "爆薬型",
+    "name": "閃光弾",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "素早さダウン"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "爆薬型",
+    "name": "連鎖爆発",
+    "rarity": "通常",
+    "target": "ランダム",
+    "cost": "MP中",
+    "effect": "魔法ダメージ小×3回"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "爆薬型",
+    "name": "大爆発",
+    "rarity": "レア",
+    "target": "全体",
+    "cost": "HP中",
+    "effect": "物理ダメージ特大"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "薬師型",
+    "name": "回復薬",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "HP回復中"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "薬師型",
+    "name": "霧の薬",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "HP回復小"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "薬師型",
+    "name": "解毒薬",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP小",
+    "effect": "状態異常を治す"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "薬師型",
+    "name": "活力剤",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "MP回復小"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "薬師型",
+    "name": "霊薬",
+    "rarity": "レア",
+    "target": "味方単体",
+    "cost": "MP大",
+    "effect": "蘇生＋HP全回復"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "劇薬型",
+    "name": "劇薬",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "HP小",
+    "effect": "強い毒"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "劇薬型",
+    "name": "狂乱薬",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "HP小",
+    "effect": "混乱"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "劇薬型",
+    "name": "腐食液",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "HP小",
+    "effect": "防御力大ダウン"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "劇薬型",
+    "name": "興奮剤",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "HP小",
+    "effect": "攻撃力＋素早さアップ"
+  },
+  {
+    "lineage": "技巧系",
+    "job": "錬金術師",
+    "archetype": "劇薬型",
+    "name": "禁断の調合",
+    "rarity": "レア",
+    "target": "全体",
+    "cost": "HP大",
+    "effect": "毒＋やけど＋混乱"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "英雄譚型",
+    "name": "勇気の歌",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "攻撃力アップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "英雄譚型",
+    "name": "戦いの調べ",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "攻撃力大アップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "英雄譚型",
+    "name": "魔力の歌",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "魔力アップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "英雄譚型",
+    "name": "激励",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "溜め：次の攻撃の威力2倍"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "英雄譚型",
+    "name": "英雄の歌",
+    "rarity": "レア",
+    "target": "味方全体",
+    "cost": "MP大",
+    "effect": "全ステータスアップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "守護歌型",
+    "name": "守りの歌",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "防御力アップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "守護歌型",
+    "name": "安らぎの歌",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "毎ターンHP回復小（数ターン）"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "守護歌型",
+    "name": "心の歌",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "精神アップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "守護歌型",
+    "name": "鎮魂歌",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "攻撃力ダウン"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "守護歌型",
+    "name": "守護の大合唱",
+    "rarity": "レア",
+    "target": "味方全体",
+    "cost": "MP大",
+    "effect": "受けるダメージ軽減＋毎ターンHP回復（数ターン）"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "疾風歌型",
+    "name": "疾風の歌",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "素早さアップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "疾風歌型",
+    "name": "急かしの歌",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "行動順を早める"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "疾風歌型",
+    "name": "まどろみの歌",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "行動順を遅らせる"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "疾風歌型",
+    "name": "軽快な調べ",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP小",
+    "effect": "素早さアップ小"
+  },
+  {
+    "lineage": "支援系",
+    "job": "吟遊詩人",
+    "archetype": "疾風歌型",
+    "name": "追い風の協奏曲",
+    "rarity": "レア",
+    "target": "味方全体",
+    "cost": "MP大",
+    "effect": "行動順を早める＋素早さアップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "剣舞型",
+    "name": "剣の舞",
+    "rarity": "通常",
+    "target": "ランダム",
+    "cost": "MP中",
+    "effect": "物理ダメージ小×2〜4回"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "剣舞型",
+    "name": "円舞",
+    "rarity": "通常",
+    "target": "前列",
+    "cost": "MP小",
+    "effect": "物理ダメージ小"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "剣舞型",
+    "name": "加速の舞",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "素早さアップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "剣舞型",
+    "name": "連舞",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "物理ダメージ小×3回"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "剣舞型",
+    "name": "死の舞踏",
+    "rarity": "レア",
+    "target": "ランダム",
+    "cost": "MP大",
+    "effect": "物理ダメージ中×5回"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "幻惑型",
+    "name": "惑わしの舞",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP中",
+    "effect": "混乱"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "幻惑型",
+    "name": "足止めの舞",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP小",
+    "effect": "行動順を遅らせる"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "幻惑型",
+    "name": "魅惑のステップ",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "攻撃力ダウン"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "幻惑型",
+    "name": "幻影の舞",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP小",
+    "effect": "回避アップ（数ターン）"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "幻惑型",
+    "name": "狂乱の舞",
+    "rarity": "レア",
+    "target": "全体",
+    "cost": "MP大",
+    "effect": "混乱"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "応援型",
+    "name": "応援の舞",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "行動順を早める"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "応援型",
+    "name": "喝采",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "攻撃力＋素早さアップ小"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "応援型",
+    "name": "癒しの舞",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "HP回復小"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "応援型",
+    "name": "情熱の舞",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP小",
+    "effect": "攻撃力大アップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "踊り子",
+    "archetype": "応援型",
+    "name": "大喝采",
+    "rarity": "レア",
+    "target": "味方全体",
+    "cost": "MP大",
+    "effect": "行動順を早める＋攻撃力アップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "精霊型",
+    "name": "火の精霊",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "毎ターン魔法ダメージ小＋やけど（数ターン）"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "精霊型",
+    "name": "雷の精霊",
+    "rarity": "通常",
+    "target": "ランダム",
+    "cost": "MP中",
+    "effect": "毎ターン魔法ダメージ中（数ターン）"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "精霊型",
+    "name": "氷の精霊",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "毎ターン素早さダウン（数ターン）"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "精霊型",
+    "name": "精霊の共鳴",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP小",
+    "effect": "魔法ダメージ小／場に残っている効果の数だけ威力アップ"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "精霊型",
+    "name": "精霊王",
+    "rarity": "レア",
+    "target": "全体",
+    "cost": "MP大",
+    "effect": "毎ターン魔法ダメージ大（数ターン）"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "守護獣型",
+    "name": "守護獣",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "受けるダメージ軽減（数ターン）"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "守護獣型",
+    "name": "癒しの獣",
+    "rarity": "通常",
+    "target": "味方全体",
+    "cost": "MP中",
+    "effect": "毎ターンHP回復小（数ターン）"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "守護獣型",
+    "name": "身代わりの獣",
+    "rarity": "通常",
+    "target": "味方単体",
+    "cost": "MP中",
+    "effect": "かばう（数ターン）"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "守護獣型",
+    "name": "威嚇の獣",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP中",
+    "effect": "攻撃力ダウン"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "守護獣型",
+    "name": "聖獣",
+    "rarity": "レア",
+    "target": "味方全体",
+    "cost": "MP大",
+    "effect": "受けるダメージ軽減＋毎ターンHP回復（数ターン）"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "大召喚型",
+    "name": "召喚の儀",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "MP中",
+    "effect": "溜め：次の技の威力2倍"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "大召喚型",
+    "name": "竜召喚",
+    "rarity": "通常",
+    "target": "全体",
+    "cost": "MP大",
+    "effect": "溜め：次のターンに魔法ダメージ大"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "大召喚型",
+    "name": "巨人召喚",
+    "rarity": "通常",
+    "target": "単体",
+    "cost": "MP大",
+    "effect": "溜め：次のターンに物理ダメージ特大"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "大召喚型",
+    "name": "魔力の泉",
+    "rarity": "通常",
+    "target": "自分",
+    "cost": "なし",
+    "effect": "MP回復小"
+  },
+  {
+    "lineage": "支援系",
+    "job": "召喚士",
+    "archetype": "大召喚型",
+    "name": "神獣召喚",
+    "rarity": "レア",
+    "target": "全体",
+    "cost": "MP全部",
+    "effect": "溜め：次のターンに魔法ダメージ特大"
+  }
+]

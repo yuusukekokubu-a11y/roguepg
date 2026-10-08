@@ -1,0 +1,202 @@
+[
+  {
+    "category": "HP回復",
+    "name": "薬草",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "HP回復小",
+    "price": "安い"
+  },
+  {
+    "category": "HP回復",
+    "name": "回復薬",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "HP回復中",
+    "price": "普通"
+  },
+  {
+    "category": "HP回復",
+    "name": "上級回復薬",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "HP回復大",
+    "price": "高い"
+  },
+  {
+    "category": "HP回復",
+    "name": "回復の霧",
+    "rarity": "通常",
+    "target": "味方全体",
+    "effect": "HP回復小",
+    "price": "高い"
+  },
+  {
+    "category": "MP回復",
+    "name": "魔力の水",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "MP回復小",
+    "price": "普通"
+  },
+  {
+    "category": "MP回復",
+    "name": "魔力の結晶",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "MP回復大",
+    "price": "高い"
+  },
+  {
+    "category": "蘇生",
+    "name": "気付け薬",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "蘇生（HPわずか）",
+    "price": "高い"
+  },
+  {
+    "category": "蘇生",
+    "name": "命の雫",
+    "rarity": "レア",
+    "target": "味方単体",
+    "effect": "蘇生＋HP全回復",
+    "price": "とても高い"
+  },
+  {
+    "category": "状態異常",
+    "name": "毒消し",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "毒を治す",
+    "price": "安い"
+  },
+  {
+    "category": "状態異常",
+    "name": "火傷薬",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "やけどを治す",
+    "price": "安い"
+  },
+  {
+    "category": "状態異常",
+    "name": "気付けの鈴",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "混乱・スタンを治す",
+    "price": "安い"
+  },
+  {
+    "category": "状態異常",
+    "name": "万能薬",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "状態異常をすべて治す",
+    "price": "普通"
+  },
+  {
+    "category": "全回復",
+    "name": "エリクサー",
+    "rarity": "レア",
+    "target": "味方単体",
+    "effect": "HP・MP全回復＋状態異常を治す",
+    "price": "とても高い"
+  },
+  {
+    "category": "戦闘用",
+    "name": "火炎石",
+    "rarity": "通常",
+    "target": "単体",
+    "effect": "ダメージ中＋やけど",
+    "price": "普通"
+  },
+  {
+    "category": "戦闘用",
+    "name": "毒の小瓶",
+    "rarity": "通常",
+    "target": "単体",
+    "effect": "毒",
+    "price": "安い"
+  },
+  {
+    "category": "戦闘用",
+    "name": "雷の玉",
+    "rarity": "通常",
+    "target": "全体",
+    "effect": "ダメージ小",
+    "price": "普通"
+  },
+  {
+    "category": "戦闘用",
+    "name": "眠り粉",
+    "rarity": "通常",
+    "target": "全体",
+    "effect": "行動順を遅らせる",
+    "price": "普通"
+  },
+  {
+    "category": "戦闘用",
+    "name": "目くらまし",
+    "rarity": "通常",
+    "target": "単体",
+    "effect": "混乱",
+    "price": "普通"
+  },
+  {
+    "category": "強化",
+    "name": "力の秘薬",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "攻撃力アップ（戦闘中）",
+    "price": "普通"
+  },
+  {
+    "category": "強化",
+    "name": "守りの秘薬",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "防御力アップ（戦闘中）",
+    "price": "普通"
+  },
+  {
+    "category": "強化",
+    "name": "俊足の秘薬",
+    "rarity": "通常",
+    "target": "味方単体",
+    "effect": "素早さアップ（戦闘中）",
+    "price": "普通"
+  },
+  {
+    "category": "強化",
+    "name": "英雄の秘薬",
+    "rarity": "レア",
+    "target": "味方全体",
+    "effect": "全ステータスアップ（戦闘中）",
+    "price": "とても高い"
+  },
+  {
+    "category": "その他",
+    "name": "煙玉",
+    "rarity": "通常",
+    "target": "—",
+    "effect": "通常戦闘から逃げる（報酬なし・強敵／ボスには使えない）",
+    "price": "普通"
+  },
+  {
+    "category": "その他",
+    "name": "休息のテント",
+    "rarity": "通常",
+    "target": "味方全体",
+    "effect": "戦闘外で使用。休憩所と同じ効果",
+    "price": "高い"
+  },
+  {
+    "category": "その他",
+    "name": "成長の実",
+    "rarity": "レア",
+    "target": "味方単体",
+    "effect": "レベルを1上げる",
+    "price": "とても高い"
+  }
+]

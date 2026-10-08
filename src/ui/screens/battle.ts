@@ -147,7 +147,7 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
       h(
         'div',
         { class: 'root-buttons' },
-        h('button', { class: 'cmd', disabled: extra, onclick: () => pick('たたかう', 'enemy', [], (t) => ({ type: 'attack', target: t! })) }, '⚔️ たたかう'),
+        h('button', { class: 'cmd', disabled: extra, onclick: () => pick('たたかう', 'enemy', [], (t) => ({ type: 'attack', target: t! })) }, `⚔️ たたかう（MP+${battle.attackMpGain(u)}）`),
         h('button', { class: 'cmd', onclick: () => ((mode = { kind: 'skills' }), render()) }, '✨ スキル'),
         h('button', { class: 'cmd', disabled: extra, onclick: () => ((mode = { kind: 'items' }), render()) }, '🧪 どうぐ'),
         h('button', { class: 'cmd', onclick: () => submit({ type: 'defend' }) }, extra ? '⏹ 行動を終える' : '🛡️ ぼうぎょ'),

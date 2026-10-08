@@ -497,6 +497,11 @@ export class Battle {
 
   // ───────────────────────── コスト ─────────────────────────
 
+  /** 「たたかう」を当てたときにたまるMP */
+  attackMpGain(u: Unit): number {
+    return Math.max(BALANCE.attackMp.min, Math.round(this.maxMp(u) * BALANCE.attackMp.ratio));
+  }
+
   mpCost(u: Unit, cost: Cost, baseTarget: TargetKind): number {
     if (cost.kind !== 'mp') return 0;
     if (u.mods.some((m) => m.mpFree)) return 0;
@@ -803,6 +808,15 @@ export class Battle {
         continue;
       }
       for (const t of targets) this.applyEffect(u, t, e, ctx);
+    }
+
+    // 「たたかう」が当たるとMPがたまる
+    if (spec.isAttack && !forced && u.side === 'player' && u.hp > 0 && ctx.hitUnits.size > 0) {
+      const gain = Math.min(this.attackMpGain(u), this.maxMp(u) - u.mp);
+      if (gain > 0) {
+        u.mp += gain;
+        this.push(`${u.name} のMPが ${gain} たまった。`, 'heal');
+      }
     }
 
     // 反撃

@@ -81,6 +81,9 @@ export const BALANCE = {
   /** 休憩所 */
   restRatio: 0.4,
 
+  /** 「たたかう」で敵に当てるとMPがたまる（最大MPの割合、最低値） */
+  attackMp: { ratio: 0.12, min: 2 },
+
   /** 価格 */
   price: {
     item: { 安い: 15, 普通: 35, 高い: 70, とても高い: 140 } as Record<string, number>,

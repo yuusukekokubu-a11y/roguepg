@@ -51,6 +51,22 @@ describe('戦闘', () => {
     expect(b.finish().exp).toBeGreaterThan(0);
   });
 
+  it('たたかうが当たるとMPがたまる', () => {
+    const c = hero('黒魔道士', [], 5);
+    c.mp = 0;
+    const b = new Battle([c], ['森の大熊'], 'elite', hooks(4));
+    b.units.forEach((u) => (u.lingers = []));
+    untilInput(b);
+    const me = b.current!;
+    const bear = b.alive('enemy')[0];
+    for (let i = 0; i < 5 && me.mp === 0; i++) {
+      b.submit({ type: 'attack', target: bear.uid });
+      if (untilInput(b) !== 'input') break;
+    }
+    expect(me.mp).toBeGreaterThan(0);
+    expect(me.mp % b.attackMpGain(me)).toBe(0);
+  });
+
   it('MPが足りない技は使えない', () => {
     const c = hero('黒魔道士', ['隕石']);
     c.mp = 0;

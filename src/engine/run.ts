@@ -32,11 +32,11 @@ export interface RunState {
   shop?: ShopStock;
   /** ボス撃破後の仲間候補 */
   recruits?: Character[];
-  result?: 'dead' | 'demoClear';
+  result?: 'dead' | 'clear';
 }
 
-/** 1層の数値しかないので、いまは1層クリアで試作版のクリアとする */
-export const LAST_PLAYABLE_FLOOR = 1;
+/** 最後の層（魔王の城） */
+export const FINAL_FLOOR = 4;
 
 class RunRng extends Rng {
   constructor(private run: RunState) {
@@ -59,10 +59,10 @@ export function starterBooks(job: string): string[] {
   return ARCHETYPES.filter((a) => a.job === job).map((a) => SKILLS.find((s) => s.job === job && s.archetype === a.name && !s.rare)!.name);
 }
 
-function starterGear(c: Character) {
+function starterGear(c: Character, tier = 0) {
   const lineage = JOB_BY_NAME.get(c.job)!.lineage;
-  c.weapon = EQUIPMENT.find((e) => e.lineage === lineage && e.slot === 'weapon' && e.tier === 0)!.name;
-  c.armor = EQUIPMENT.find((e) => e.lineage === lineage && e.slot === 'armor' && e.tier === 0)!.name;
+  c.weapon = EQUIPMENT.find((e) => e.lineage === lineage && e.slot === 'weapon' && e.tier === tier)!.name;
+  c.armor = EQUIPMENT.find((e) => e.lineage === lineage && e.slot === 'armor' && e.tier === tier)!.name;
   const st = characterStats(c);
   c.hp = st.hp;
   c.mp = st.mp;
@@ -162,7 +162,7 @@ function rollEquipment(run: RunState, rng: Rng, tier: number): string {
   // パーティーの系統の装備が出やすい
   const lineages = run.party.map((c) => JOB_BY_NAME.get(c.job)!.lineage);
   const lineage = rng.chance(0.7) ? rng.pick(lineages) : rng.pick(['剣士系', '魔法系', '技巧系', '支援系'] as const);
-  const pool = EQUIPMENT.filter((e) => e.lineage === lineage && e.tier === tier);
+  const pool = EQUIPMENT.filter((e) => e.lineage === lineage && e.tier === Math.min(3, tier));
   return rng.pick(pool).name;
 }
 
@@ -421,7 +421,8 @@ export function makeRecruits(run: RunState): Character[] {
     const c = createCharacter(j.name, level, false, j.name);
     const books = starterBooks(j.name);
     c.skills.push(rng.pick(books));
-    starterGear(c);
+    // 加入する層に合わせた装備を持ってくる（2層に来る仲間は段階1の装備）
+    starterGear(c, Math.min(3, run.floor));
     c.row = j.role === 'タンク' || j.lineage === '剣士系' ? 'front' : 'back';
     return c;
   });
@@ -429,6 +430,10 @@ export function makeRecruits(run: RunState): Character[] {
 
 export function bossCleared(run: RunState) {
   fullRecover(run);
+  if (run.floor >= FINAL_FLOOR) {
+    run.result = 'clear';
+    return;
+  }
   run.recruits = makeRecruits(run);
 }
 
@@ -441,10 +446,6 @@ export function recruit(run: RunState, index: number | null) {
     run.party.push(c);
   }
   run.recruits = undefined;
-  if (run.floor >= LAST_PLAYABLE_FLOOR) {
-    run.result = 'demoClear';
-    return;
-  }
   run.floor++;
   run.current = null;
   run.visited = [];

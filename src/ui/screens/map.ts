@@ -85,7 +85,7 @@ export function mapScreen(app: App) {
   });
 
   const mapSvg = svg('svg', { viewBox: `0 0 ${W} ${H}`, class: 'map-svg' }, ...lines, ...nodes);
-  const wrap = h('div', { class: 'map-wrap' });
+  const wrap = h('div', { class: `map-wrap floor-${run.floor}` });
   wrap.appendChild(mapSvg);
   // 今いる場所が見えるようにスクロール
   requestAnimationFrame(() => {
@@ -99,7 +99,13 @@ export function mapScreen(app: App) {
     'div',
     { class: 'screen' },
     partyBar(app, () => app.go({ name: 'map' })),
-    h('div', { class: 'floor-head' }, h('h2', null, `${run.floor}層：${floor.place}`), h('p', { class: 'muted small' }, floor.feature)),
+    h(
+      'div',
+      { class: 'floor-head' },
+      h('h2', null, `${run.floor}層：${floor.place}`),
+      h('p', { class: 'muted small' }, floor.feature),
+      h('p', { class: 'small tip' }, `有利なビルド：${floor.builds}`),
+    ),
     h('p', { class: 'hint' }, next.size > 0 ? '光っているマスを選んで進もう' : ''),
     wrap,
     h(

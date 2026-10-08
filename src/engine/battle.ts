@@ -31,6 +31,8 @@ export interface Linger {
   what?: 'lifesteal' | 'poison' | 'magic';
   tick?: { effects: Effect[]; caster: Unit; randomEnemy: boolean };
   permanent?: boolean;
+  /** 物理攻撃にだけ反応する（反撃） */
+  physicalOnly?: boolean;
 }
 
 export interface StatusState {
@@ -66,6 +68,8 @@ export interface Unit {
   endureUsed: boolean;
   enrageUsed: boolean;
   patternIndex: number;
+  /** HPが半分以下になって行動が変わった（第2段階） */
+  phase2: boolean;
   stolenGold: number;
   stolenFrom: boolean;
 }
@@ -158,6 +162,8 @@ export class Battle {
       if (u.mods.some((m) => m.battleStartFastest)) u.wait = 0;
       if (u.mods.some((m) => m.alwaysTaunt)) u.lingers.push({ kind: 'taunt', turns: 99, sourceSide: u.side, permanent: true });
       for (const m of u.mods) if (m.alwaysStatus === 'poison') u.status.poison = { stacks: 1, turns: 99, mul: 1, weak: false };
+      const ec = u.enemy?.counter;
+      if (ec) u.lingers.push({ kind: 'counter', turns: 99, sourceSide: u.side, permanent: true, physicalOnly: true, status: ec.status });
     }
     this.fixRows();
     const names = [...counts.entries()].map(([n, c]) => (c > 1 ? `${n}×${c}` : n)).join('、');
@@ -220,6 +226,7 @@ export class Battle {
       endureUsed: false,
       enrageUsed: false,
       patternIndex: 0,
+      phase2: false,
       stolenGold: 0,
       stolenFrom: false,
     };
@@ -355,6 +362,9 @@ export class Battle {
     }
     if (u.side === 'enemy') {
       this.enemyAct(u);
+      if (u.phase2 && u.enemy?.halfHp?.doubleAction && u.hp > 0 && !this.checkEnd() && !u.status.stun) {
+        this.enemyAct(u);
+      }
       this.endTurn(u);
       this.checkEnd();
       return this.phase;
@@ -658,6 +668,11 @@ export class Battle {
     if (def.enrage && !u.enrageUsed && u.hp <= this.maxHp(u) / 2) {
       u.enrageUsed = true;
       action = def.actions.find((a) => a.name === def.enrage);
+    } else if (u.phase2 && def.halfHp?.pattern) {
+      const p = def.halfHp.pattern;
+      const name = p[u.patternIndex % p.length];
+      u.patternIndex++;
+      action = def.actions.find((a) => a.name === name);
     } else if (def.pattern) {
       const name = def.pattern[u.patternIndex % def.pattern.length];
       u.patternIndex++;
@@ -670,7 +685,18 @@ export class Battle {
     this.push(`${u.name} の ${action.name}！`, 'turn');
     let target: number | undefined;
     if (action.target === 'enemy') target = this.enemyPickTarget(u)?.uid;
+    if (action.target === 'ally') target = this.enemyPickAlly(u, parsed.effects)?.uid;
     this.execute(u, { name: action.name, effects: parsed.effects, conditions: parsed.conditions, target: action.target }, target);
+  }
+
+  /** 敵が味方（敵側）を選ぶ：かばうなら自分以外、それ以外はHPの割合が一番低い仲間 */
+  private enemyPickAlly(u: Unit, effects: Effect[]): Unit | undefined {
+    const allies = this.alive(u.side);
+    if (effects.some((e) => e.kind === 'cover')) {
+      const others = allies.filter((a) => a !== u);
+      return others.length > 0 ? this.rng.pick(others) : undefined;
+    }
+    return [...allies].sort((a, b) => a.hp / this.maxHp(a) - b.hp / this.maxHp(b))[0];
   }
 
   /** 敵が狙う相手：挑発 > 前列を狙いやすい */
@@ -679,6 +705,10 @@ export class Battle {
     const taunters = foes.filter((f) => this.hasLinger(f, 'taunt'));
     if (taunters.length > 0) return this.rng.pick(taunters);
     if (foes.length === 0) return undefined;
+    if (u.enemy?.targetFront) {
+      const front = foes.filter((f) => f.row === 'front');
+      if (front.length > 0) return this.rng.pick(front);
+    }
     return this.rng.weighted(foes.map((f) => [f, f.row === 'front' ? BALANCE.targetWeight.front : BALANCE.targetWeight.back] as [Unit, number]));
   }
 
@@ -821,10 +851,11 @@ export class Battle {
 
     // 反撃
     if (!spec.isCounter && ctx.dealtDamage) {
+      const physicalAction = spec.effects.some((e) => e.kind === 'damage' && (e.type === 'physical' || e.type === 'hybrid'));
       for (const t of ctx.hitUnits) {
         if (t.hp <= 0 || u.hp <= 0 || t.side === u.side) continue;
         const dc = t.lingers.find((l) => l.kind === 'dodgeCounter' && l.amount === -1);
-        const c = t.lingers.find((l) => l.kind === 'counter');
+        const c = t.lingers.find((l) => l.kind === 'counter' && (!l.physicalOnly || physicalAction));
         if (dc) t.lingers = t.lingers.filter((l) => l !== dc);
         if (dc || c) this.counterAttack(t, u, c?.status);
       }
@@ -1021,7 +1052,7 @@ export class Battle {
   }
 
   private evasion(t: Unit): number {
-    let ev = BALANCE.baseEvasion;
+    let ev = BALANCE.baseEvasion + (t.enemy?.evasion ?? 0);
     for (const l of t.lingers) if (l.kind === 'evade' && l.amount) ev += l.amount;
     for (const m of t.mods) {
       if (m.evasionAdd) ev += m.evasionAdd;
@@ -1056,7 +1087,23 @@ export class Battle {
       for (const m of t.mods) if (m.onDamagedAtkUp) t.buffs.push({ stat: 'atk', amount: m.onDamagedAtkUp, turns: 99 });
     }
     if (t.hp <= 0) this.onDeath(t, from);
+    else this.checkHalfHp(t);
     return lost;
+  }
+
+  /** テスト用：直接ダメージを与える */
+  submitDamageForTest(t: Unit, amount: number) {
+    this.loseHp(t, amount, null);
+  }
+
+  /** HPが半分以下になったら第2段階へ */
+  private checkHalfHp(t: Unit) {
+    const half = t.enemy?.halfHp;
+    if (!half || t.phase2 || t.hp > this.maxHp(t) / 2) return;
+    t.phase2 = true;
+    t.patternIndex = 0;
+    if (half.immuneAll) t.status = {};
+    this.push(half.text, 'system');
   }
 
   private onDeath(t: Unit, from: Unit | null) {
@@ -1120,6 +1167,7 @@ export class Battle {
       return;
     }
     const immune = [...(t.enemy?.immune ?? []), ...t.mods.flatMap((m) => m.immune ?? [])];
+    if (t.phase2 && t.enemy?.halfHp?.immuneAll) immune.push(status);
     if (immune.includes(status)) {
       this.push(`${t.name} に${STATUS_LABEL[status]}は効かない！`, 'status');
       return;

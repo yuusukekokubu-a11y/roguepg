@@ -48,7 +48,7 @@ export const BALANCE = {
   buffTurns: 4,
   lingeringTurns: 3,
   battleLongTurns: 99,
-  buffCap: { min: 0.4, max: 3.0 },
+  buffCap: { min: 0.5, max: 3.0 },
 
   /** 状態異常 */
   status: {
@@ -69,7 +69,7 @@ export const BALANCE = {
   hasteRatio: 0.5,
 
   /** 経験値： 次のレベルまで */
-  expToNext: (level: number) => Math.round(12 * Math.pow(level, 1.6)),
+  expToNext: (level: number) => Math.round(10 * Math.pow(level, 1.35)),
   /** スキル枠：レベルごとの枠数 */
   skillSlots: (level: number) => Math.min(6, 2 + (level >= 3 ? 1 : 0) + (level >= 5 ? 1 : 0) + (level >= 8 ? 1 : 0) + (level >= 12 ? 1 : 0)),
   maxLevel: 30,

@@ -141,4 +141,35 @@ describe('戦闘', () => {
     }
     expect(c.accessories[0]).toBeNull();
   });
+
+  it('魔王はHPが半分以下になると第2段階になり、状態異常が効かなくなる', () => {
+    const b = new Battle([hero('呪術師', [], 15)], ['魔王'], 'boss', hooks());
+    const maou = b.alive('enemy')[0];
+    const me = b.units[0];
+    b.applyStatus(me, maou, 'poison', 1);
+    maou.hp = Math.floor(b.maxHp(maou) / 2) + 1;
+    b.submitDamageForTest(maou, 5);
+    expect(maou.phase2).toBe(true);
+    expect(maou.status.poison).toBeUndefined();
+    b.applyStatus(me, maou, 'stun', 1);
+    expect(maou.status.stun).toBeUndefined();
+  });
+
+  it('溶岩スライムは物理攻撃にだけ反撃する', () => {
+    const b = new Battle([hero('黒魔道士', ['火炎'], 15)], ['溶岩スライム'], 'normal', hooks(7));
+    const slime = b.alive('enemy')[0];
+    slime.base.hp = slime.hp = 9999;
+    untilInput(b);
+    const me = b.current!;
+    const before = b.log.length;
+    b.submit({ type: 'skill', skill: '火炎', target: slime.uid });
+    expect(b.log.slice(before).some((l) => l.text.includes('反撃'))).toBe(false);
+    if (untilInput(b) !== 'input') return;
+    const before2 = b.log.length;
+    me.lingers = [];
+    b.submit({ type: 'attack', target: slime.uid });
+    const logs = b.log.slice(before2).map((l) => l.text);
+    const dodged = logs.some((t) => t.includes('かわした'));
+    expect(dodged || logs.includes('溶岩スライム の反撃！')).toBe(true);
+  });
 });

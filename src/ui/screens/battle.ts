@@ -203,6 +203,11 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
     const rewards = battleRewards(run, battle.kind, result.exp, result.gold);
     run.log.kills += battle.units.filter((u) => u.side === 'enemy').length;
     if (screen.boss) bossCleared(run);
+    if (run.result === 'clear') {
+      clearSave();
+      app.go({ name: 'end' });
+      return;
+    }
     app.save();
     app.go({ name: 'reward', title: screen.boss ? '👑 ボス撃破！' : '🏆 勝利！', rewards, boss: screen.boss });
   };

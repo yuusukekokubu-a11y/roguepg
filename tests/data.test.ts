@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ACCESSORIES, ITEMS, JOBS, SKILLS } from '../src/data';
 import accessoriesJson from '../src/data/generated/accessories.json';
+import enemiesJson from '../src/data/generated/enemies.json';
 import { ACCESSORY_MODS } from '../src/data/accessoryMods';
 import { ENEMIES, ENCOUNTERS } from '../src/data/enemies';
 import { EQUIPMENT, LINEAGES } from '../src/data/equipment';
@@ -29,7 +30,32 @@ describe('企画書のデータ', () => {
 
   it('敵の技がすべて読める', () => {
     for (const e of ENEMIES) for (const a of e.actions) expect(() => parseAction(a.effect), `${e.name}:${a.name}`).not.toThrow();
-    for (const list of Object.values(ENCOUNTERS[1])) for (const g of list) for (const n of g) expect(ENEMIES.some((e) => e.name === n), n).toBe(true);
+  });
+
+  it('敵36体が企画書の「敵」シートと一致している', () => {
+    const KIND: Record<string, string> = { 通常: 'normal', 強敵: 'elite', ボス: 'boss' };
+    expect(ENEMIES).toHaveLength(36);
+    for (const row of enemiesJson) {
+      const e = ENEMIES.find((x) => x.name === row.name);
+      expect(e, row.name).toBeDefined();
+      expect(`${e!.floor}層`, row.name).toBe(row.floor);
+      expect(e!.kind, row.name).toBe(KIND[row.kind]);
+    }
+  });
+
+  it('全4層の出現パターンに実在する敵だけがいる', () => {
+    for (const floor of [1, 2, 3, 4]) {
+      const table = ENCOUNTERS[floor];
+      expect(table, `${floor}層`).toBeDefined();
+      for (const list of Object.values(table))
+        for (const g of list) for (const n of g) expect(ENEMIES.find((e) => e.name === n)?.floor, `${floor}層:${n}`).toBe(floor);
+    }
+  });
+
+  it('パターン行動の技名がすべて定義されている', () => {
+    for (const e of ENEMIES)
+      for (const n of [...(e.pattern ?? []), ...(e.halfHp?.pattern ?? []), ...(e.enrage ? [e.enrage] : [])])
+        expect(e.actions.some((a) => a.name === n), `${e.name}:${n}`).toBe(true);
   });
 
   it('各職業に方向性3つぶんの最初の本がある', () => {

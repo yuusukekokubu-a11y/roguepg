@@ -313,6 +313,19 @@ button.danger {
   border-radius: 16px;
   padding: 6px;
 }
+.map-wrap.floor-2 {
+  background: linear-gradient(180deg, #1c2a3a, #22324a 40%, #1d2a3a);
+}
+.map-wrap.floor-3 {
+  background: linear-gradient(180deg, #3a1c16, #2c1a1a 40%, #3a2016);
+}
+.map-wrap.floor-4 {
+  background: linear-gradient(180deg, #24183a, #1c1630 40%, #2a1838);
+}
+.floor-head .tip {
+  color: var(--accent2);
+  margin: 2px 0 0;
+}
 .map-svg {
   width: 100%;
   height: auto;

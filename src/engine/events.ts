@@ -1,6 +1,7 @@
 // マップの「イベント」マス：選択肢つきの出来事。良いことも悪いことも起きる。
 
 import { ACCESSORIES, ITEMS, SKILLS } from '../data';
+import { ENCOUNTERS } from '../data/enemies';
 import { characterStats, gainExp } from './character';
 import { addToInventory, rngOf, type RunState } from './run';
 
@@ -26,6 +27,7 @@ export interface GameEvent {
 }
 
 const alive = (run: RunState) => run.party.filter((c) => c.hp > 0);
+const merchantPrice = (run: RunState) => 30 + run.floor * 20;
 
 export const EVENTS: GameEvent[] = [
   {
@@ -66,11 +68,11 @@ export const EVENTS: GameEvent[] = [
     text: '「いい本がありますよ……中身は買ってからのお楽しみ」',
     choices: [
       {
-        label: '50Gで本を買う',
-        disabled: (run) => (run.gold < 50 ? 'お金が足りない' : null),
+        label: '本を買う（30G＋層×20G）',
+        disabled: (run) => (run.gold < merchantPrice(run) ? 'お金が足りない' : null),
         resolve: (run) => {
           const rng = rngOf(run);
-          run.gold -= 50;
+          run.gold -= merchantPrice(run);
           const rare = rng.chance(0.4);
           const name = rng.pick(SKILLS.filter((s) => s.rare === rare)).name;
           const ok = addToInventory(run, { kind: 'book', name });
@@ -90,11 +92,15 @@ export const EVENTS: GameEvent[] = [
         label: '荷物をあさる',
         resolve: (run) => {
           const rng = rngOf(run);
-          if (rng.chance(0.4)) return { text: '「おい、それは俺たちの獲物だ！」野盗があらわれた！', battle: ['野盗', '野盗'] };
+          if (rng.chance(0.4)) {
+            const foes = run.floor === 1 ? ['野盗', '野盗'] : rng.pick(ENCOUNTERS[run.floor].late);
+            return { text: '物音に気づいた魔物たちがあらわれた！', battle: foes };
+          }
           const name = rng.pick(ITEMS.filter((i) => !i.rare)).name;
           const ok = addToInventory(run, { kind: 'item', name });
-          run.gold += 20;
-          return { text: `20G と ${name} を手に入れた。${ok ? '' : '（持ちきれなかった）'}` };
+          const gold = 20 * run.floor;
+          run.gold += gold;
+          return { text: `${gold}G と ${name} を手に入れた。${ok ? '' : '（持ちきれなかった）'}` };
         },
       },
       {

@@ -1,6 +1,6 @@
 // 報酬・宝箱・ショップ・休憩所・イベント・仲間加入・ランの結果。
 
-import { JOB_BY_NAME, SKILL_BY_NAME } from '../../data';
+import { FLOORS, JOB_BY_NAME, SKILL_BY_NAME } from '../../data';
 import { BALANCE } from '../../engine/balance';
 import { characterStats } from '../../engine/character';
 import type { GameEvent } from '../../engine/events';
@@ -10,7 +10,6 @@ import {
   buyPrice,
   clearSave,
   inventoryFull,
-  LAST_PLAYABLE_FLOOR,
   recruit,
   rest,
   sell,
@@ -332,7 +331,6 @@ export function recruitScreen(app: App) {
       }),
     ),
     h('button', { class: 'ghost', onclick: async () => (await ask('だれも仲間にしませんか？', '仲間にしない')) && pickOne(null) }, 'だれも選ばない'),
-    run.floor >= LAST_PLAYABLE_FLOOR ? h('p', { class: 'muted center' }, '※ 試作版はここまで（2層以降は開発中です）') : null,
   );
 }
 
@@ -346,16 +344,22 @@ export function endScreen(app: App) {
     h(
       'div',
       { class: `panel center end ${dead ? 'dead' : 'clear'}` },
-      h('h1', null, dead ? '💀 ゲームオーバー' : '🎉 1層クリア！'),
-      h('p', null, dead ? 'パーティーは全滅した。何も引き継がず、最初からやり直しだ。' : '草原の主を倒した！ 試作版はここまでです。遊んでくれてありがとう！'),
+      h('h1', null, dead ? '💀 ゲームオーバー' : '👑 魔王討伐！'),
+      h(
+        'p',
+        null,
+        dead
+          ? `${run.floor}層「${FLOORS[run.floor - 1].place}」でパーティーは全滅した。何も引き継がず、最初からやり直しだ。`
+          : '魔王は倒れ、城に光が戻った。この旅で集めた仲間とともに、伝説が語り継がれる。',
+      ),
       h(
         'ul',
         { class: 'summary' },
-        h('li', null, `到達：${run.floor}層`),
+        h('li', null, `到達：${run.floor}層「${FLOORS[run.floor - 1].place}」`),
         h('li', null, `主人公：${hero.job} Lv${hero.level}`),
         h('li', null, `戦闘回数：${run.log.battles}（強敵 ${run.log.elites}）`),
         h('li', null, `倒した敵：${run.log.kills}体`),
-        h('li', null, `パーティー：${run.party.map((c) => `${JOB_BY_NAME.get(c.job)!.icon}${c.name}`).join('、')}`),
+        h('li', null, `パーティー：${run.party.map((c) => `${JOB_BY_NAME.get(c.job)!.icon}${c.name} Lv${c.level}`).join('、')}`),
       ),
       h(
         'button',

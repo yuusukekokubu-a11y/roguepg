@@ -114,20 +114,27 @@ function manage(run: RunState) {
 export interface SimResult {
   job: string;
   cleared: boolean;
-  diedAt: number;
+  /** 倒れた（またはクリアした）層 */
+  floor: number;
   level: number;
 }
 
 export function simulateRun(job: string, seed: number): SimResult {
   const rng0 = new Rng(seed);
   const run = newRun(job, rng0.pick(starterBooks(job)), seed);
-  const rng = new Rng(seed + 1);
+  return playRun(run, new Rng(seed + 1));
+}
+
+/** ランを自動で進める。lastFloor を指定すると、その層を抜けた時点で止める */
+export function playRun(run: RunState, rng: Rng, lastFloor = 99): SimResult {
+  const job = run.party[0].job;
+  const dead = () => ({ job, cleared: false, floor: run.floor, level: run.party[0].level });
   let steps = 0;
-  while (!run.result && steps++ < 50) {
+  while (!run.result && run.floor <= lastFloor && steps++ < 200) {
     const opts = choices(run);
     if (opts.length === 0) break;
-    const hero = run.party[0];
-    const hpRatio = hero.hp / characterStats(hero).hp;
+    const living = run.party.filter((c) => c.hp > 0);
+    const hpRatio = living.reduce((a, c) => a + c.hp / characterStats(c).hp, 0) / run.party.length;
     const pref = (t: string) =>
       t === 'rest' ? (hpRatio < 0.6 ? 0 : 5) : t === 'battle' ? 1 : t === 'treasure' ? 0 : t === 'event' ? 2 : t === 'shop' ? 3 : t === 'elite' ? (hpRatio > 0.8 ? 2 : 6) : 0;
     const node = [...opts].sort((a, b) => pref(a.type) - pref(b.type))[0];
@@ -139,12 +146,12 @@ export function simulateRun(job: string, seed: number): SimResult {
         const enc = encounterFor(run, node);
         const b = runBattle(run, enc.enemies, enc.kind, rng);
         const r = b.finish();
-        if (b.phase === 'lost' || isPartyDead(run)) return { job, cleared: false, diedAt: node.row, level: hero.level };
+        if (b.phase === 'lost' || isPartyDead(run)) return dead();
         const rw = battleRewards(run, enc.kind, r.exp, r.gold);
         for (const d of rw.drops) addToInventory(run, d);
         if (node.type === 'boss') {
           bossCleared(run);
-          recruit(run, 0);
+          if (!run.result) recruit(run, rng.int(0, 2));
         }
         break;
       }
@@ -156,9 +163,10 @@ export function simulateRun(job: string, seed: number): SimResult {
         break;
       case 'shop': {
         const shop = openShop(run);
+        const jobs = run.party.map((c) => c.job);
         shop.goods.forEach((g, i) => {
-          if (g.entry.kind === 'book' && SKILL_BY_NAME.get(g.entry.name)!.job === job) buy(run, i);
-          if (g.entry.name === '薬草') buy(run, i);
+          if (g.entry.kind === 'book' && jobs.includes(SKILL_BY_NAME.get(g.entry.name)!.job)) buy(run, i);
+          if (g.entry.name === '薬草' || g.entry.name === '回復薬') buy(run, i);
         });
         break;
       }
@@ -169,7 +177,7 @@ export function simulateRun(job: string, seed: number): SimResult {
         if (out.battle) {
           const b = runBattle(run, out.battle, 'normal', rng);
           const r = b.finish();
-          if (b.phase === 'lost') return { job, cleared: false, diedAt: node.row, level: hero.level };
+          if (b.phase === 'lost') return dead();
           battleRewards(run, 'normal', r.exp, r.gold);
         }
         break;
@@ -177,5 +185,5 @@ export function simulateRun(job: string, seed: number): SimResult {
     }
     manage(run);
   }
-  return { job, cleared: run.result === 'demoClear', diedAt: -1, level: run.party[0].level };
+  return { job, cleared: run.result === 'clear', floor: run.floor, level: run.party[0].level };
 }

@@ -2,7 +2,7 @@ import './style.css';
 import { createApp } from './ui/app';
 import { battleScreen } from './ui/screens/battle';
 import { mapScreen } from './ui/screens/map';
-import { endScreen, eventScreen, lootScreen, recruitScreen, restScreen, rewardScreen, shopScreen } from './ui/screens/misc';
+import { blessingScreen, endScreen, eventScreen, lootScreen, recruitScreen, restScreen, rewardScreen, shopScreen } from './ui/screens/misc';
 import { jobsScreen, starterScreen, titleScreen } from './ui/screens/start';
 
 const app = createApp(document.getElementById('app')!, {
@@ -17,6 +17,7 @@ const app = createApp(document.getElementById('app')!, {
   rest: restScreen,
   event: eventScreen,
   recruit: recruitScreen,
+  blessing: blessingScreen,
   end: endScreen,
 });
 

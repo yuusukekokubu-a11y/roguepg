@@ -4,7 +4,7 @@ import { ARCHETYPES, JOBS, JOB_BY_NAME, SKILL_BY_NAME } from '../../data';
 import { jobStats } from '../../engine/character';
 import { clearSave, loadRun, newRun, starterBooks } from '../../engine/run';
 import { STATS, STAT_LABEL } from '../../engine/types';
-import type { App } from '../app';
+import { resumeScreen, type App } from '../app';
 import { ask, h } from '../dom';
 import { skillLine } from '../describe';
 
@@ -25,7 +25,7 @@ export function titleScreen(app: App) {
               class: 'primary big',
               onclick: () => {
                 app.run = saved;
-                app.go({ name: 'map' });
+                app.go(resumeScreen(saved));
               },
             },
             `つづきから（${saved.floor}層・${JOB_BY_NAME.get(saved.party[0].job)?.icon ?? ''}${saved.party[0].job} Lv${saved.party[0].level}）`,
@@ -113,7 +113,7 @@ export function starterScreen(app: App, screen: { job: string }) {
             onclick: () => {
               app.run = newRun(job.name, name);
               app.save();
-              app.go({ name: 'map' });
+              app.go({ name: 'recruit' });
             },
           },
           h('div', { class: 'tag' }, arch.name),

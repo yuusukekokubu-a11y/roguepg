@@ -94,6 +94,8 @@ export interface BattleHooks {
   removeItem(name: string): void;
   /** 身代わり人形が壊れたとき */
   breakAccessory(c: Character, name: string): void;
+  /** パーティー全員にかかる加護 */
+  blessings?: AccessoryMod[];
 }
 
 export type BattleKind = 'normal' | 'elite' | 'boss';
@@ -172,8 +174,17 @@ export class Battle {
 
   // ───────────────────────── ユニット作成 ─────────────────────────
 
+  /** アクセサリー＋加護 */
+  private playerMods(c: Character): AccessoryMod[] {
+    return [...accessoryMods(c), ...(this.hooks.blessings ?? [])];
+  }
+
   private makePlayerUnit(c: Character): Unit {
     const st = characterStats(c);
+    // 加護のステータス倍率（アクセサリーの分は characterStats に入っている）
+    for (const m of this.hooks.blessings ?? []) {
+      for (const [k, v] of Object.entries(m.statMul ?? {})) st[k as Stat] = Math.max(1, Math.round(st[k as Stat] * v));
+    }
     const job = JOB_BY_NAME.get(c.job)!;
     return {
       ...this.blankUnit(),
@@ -185,7 +196,7 @@ export class Battle {
       hp: c.hp,
       mp: c.mp,
       row: c.row,
-      mods: accessoryMods(c),
+      mods: this.playerMods(c),
       ranged: job.ranged,
     };
   }
@@ -1000,6 +1011,7 @@ export class Battle {
     if (this.hasLinger(t, 'defend')) dmg *= 0.5;
     for (const l of t.lingers) if (l.kind === 'guard' && l.amount) dmg *= l.amount;
     if (!physical) for (const m of t.mods) if (m.magicDamageTakenMul) dmg *= m.magicDamageTakenMul;
+    for (const m of t.mods) if (m.damageTakenMul) dmg *= m.damageTakenMul;
     if (covered) for (const m of t.mods) if (m.coverDamageMul) dmg *= m.coverDamageMul;
     const crit = ctx.crit || e.crit || (!ctx.spec.isItem && this.rng.chance(BALANCE.critChance));
     if (crit) dmg *= BALANCE.critMul;
@@ -1077,7 +1089,7 @@ export class Battle {
       } else if (t.char && t.char.accessories.includes('身代わり人形')) {
         next = 1;
         this.hooks.breakAccessory(t.char, '身代わり人形');
-        t.mods = accessoryMods(t.char);
+        t.mods = this.playerMods(t.char);
         this.push(`身代わり人形が壊れ、${t.name} は倒れずにすんだ！`, 'info');
       }
     }
@@ -1396,6 +1408,11 @@ export class Battle {
       }
     }
     if (this.phase !== 'won') return { exp: 0, gold: 0 };
+    // 再起の加護：倒れた仲間が起き上がる
+    for (const u of this.units) {
+      const ratio = Math.max(0, ...u.mods.map((m) => m.reviveAfterBattle ?? 0));
+      if (u.char && u.char.hp <= 0 && ratio > 0) u.char.hp = Math.max(1, Math.round(characterStats(u.char).hp * ratio));
+    }
     const defeated = this.units.filter((u) => u.side === 'enemy');
     const exp = Math.round(defeated.reduce((a, u) => a + (u.enemy?.exp ?? 0), 0) * this.rewardMul);
     let gold = defeated.reduce((a, u) => a + (u.enemy?.gold ?? 0), 0) * this.rewardMul;

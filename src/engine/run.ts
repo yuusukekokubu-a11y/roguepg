@@ -2,6 +2,7 @@
 // RunState は JSON にそのまま保存できる形にしている。
 
 import { ACCESSORIES, ACCESSORY_BY_NAME, ARCHETYPES, ITEMS, ITEM_BY_NAME, JOBS, JOB_BY_NAME, SKILLS, SKILL_BY_NAME } from '../data';
+import { BLESSINGS, BLESSING_BY_NAME } from '../data/blessings';
 import { ENCOUNTERS } from '../data/enemies';
 import { EQUIPMENT, type EquipmentDef } from '../data/equipment';
 import { BALANCE } from './balance';
@@ -30,13 +31,19 @@ export interface RunState {
   log: { battles: number; kills: number; elites: number };
   /** ショップの品ぞろえ（入ったときに決まる） */
   shop?: ShopStock;
-  /** ボス撃破後の仲間候補 */
+  /** 仲間の候補（ラン開始時の2人目、または1・2層のボス撃破後） */
   recruits?: Character[];
+  /** 3層ボス撃破後の加護の候補 */
+  blessingChoices?: string[];
+  /** 受けている加護 */
+  blessings?: string[];
   result?: 'dead' | 'clear';
 }
 
 /** 最後の層（魔王の城） */
 export const FINAL_FLOOR = 4;
+/** パーティーの最大人数 */
+export const MAX_PARTY = 4;
 
 class RunRng extends Rng {
   constructor(private run: RunState) {
@@ -89,6 +96,7 @@ export function newRun(job: string, starterBook: string, seed = Math.floor(Math.
     log: { battles: 0, kills: 0, elites: 0 },
   };
   run.map = generateMap(rngOf(run));
+  offerPartner(run);
   return run;
 }
 
@@ -413,7 +421,7 @@ export function useFieldItem(run: RunState, invIndex: number, charId?: string): 
 
 // ───────────────────────── 層クリア・仲間 ─────────────────────────
 
-export function makeRecruits(run: RunState): Character[] {
+export function makeRecruits(run: RunState, gearTier = Math.min(3, run.floor)): Character[] {
   const rng = rngOf(run);
   const level = run.party.find((c) => c.isHero)!.level;
   const jobs = rng.sample(JOBS, 3);
@@ -422,7 +430,7 @@ export function makeRecruits(run: RunState): Character[] {
     const books = starterBooks(j.name);
     c.skills.push(rng.pick(books));
     // 加入する層に合わせた装備を持ってくる（2層に来る仲間は段階1の装備）
-    starterGear(c, Math.min(3, run.floor));
+    starterGear(c, gearTier);
     c.row = j.role === 'タンク' || j.lineage === '剣士系' ? 'front' : 'back';
     return c;
   });
@@ -434,10 +442,17 @@ export function bossCleared(run: RunState) {
     run.result = 'clear';
     return;
   }
+  // パーティーが4人そろっていたら（3層クリア時）、仲間の代わりに加護を選ぶ
+  if (run.party.length >= MAX_PARTY) {
+    run.blessingChoices = rngOf(run)
+      .sample(BLESSINGS.filter((b) => !run.blessings?.includes(b.name)), 3)
+      .map((b) => b.name);
+    return;
+  }
   run.recruits = makeRecruits(run);
 }
 
-export function recruit(run: RunState, index: number | null) {
+function addMember(run: RunState, index: number | null) {
   if (index !== null && run.recruits?.[index]) {
     const c = run.recruits[index];
     // 名前がかぶったら番号をつける
@@ -446,6 +461,33 @@ export function recruit(run: RunState, index: number | null) {
     run.party.push(c);
   }
   run.recruits = undefined;
+}
+
+/** ラン開始時の2人目の候補を作る */
+export function offerPartner(run: RunState) {
+  run.recruits = makeRecruits(run, 0);
+}
+
+/** ラン開始時の2人目を決める（層は進まない） */
+export function choosePartner(run: RunState, index: number) {
+  addMember(run, index);
+}
+
+/** ボス撃破後の仲間加入 → 次の層へ */
+export function recruit(run: RunState, index: number | null) {
+  addMember(run, index);
+  nextFloor(run);
+}
+
+/** 3層クリアの加護を選ぶ → 次の層へ */
+export function chooseBlessing(run: RunState, name: string) {
+  if (!run.blessingChoices?.includes(name)) throw new Error('その加護は選べません');
+  run.blessings = [...(run.blessings ?? []), name];
+  run.blessingChoices = undefined;
+  nextFloor(run);
+}
+
+function nextFloor(run: RunState) {
   run.floor++;
   run.current = null;
   run.visited = [];
@@ -471,6 +513,7 @@ export function battleHooks(run: RunState, rng: Rng = rngOf(run)): BattleHooks {
       const i = c.accessories.indexOf(n);
       if (i >= 0) c.accessories[i] = null;
     },
+    blessings: (run.blessings ?? []).map((n) => BLESSING_BY_NAME.get(n)!.mod),
   };
 }
 

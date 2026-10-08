@@ -10,6 +10,8 @@ import {
   battleHooks,
   battleRewards,
   bossCleared,
+  chooseBlessing,
+  choosePartner,
   choices,
   encounterFor,
   equip,
@@ -122,7 +124,9 @@ export interface SimResult {
 export function simulateRun(job: string, seed: number): SimResult {
   const rng0 = new Rng(seed);
   const run = newRun(job, rng0.pick(starterBooks(job)), seed);
-  return playRun(run, new Rng(seed + 1));
+  const rng = new Rng(seed + 1);
+  choosePartner(run, rng.int(0, 2));
+  return playRun(run, rng);
 }
 
 /** ランを自動で進める。lastFloor を指定すると、その層を抜けた時点で止める */
@@ -151,7 +155,8 @@ export function playRun(run: RunState, rng: Rng, lastFloor = 99): SimResult {
         for (const d of rw.drops) addToInventory(run, d);
         if (node.type === 'boss') {
           bossCleared(run);
-          if (!run.result) recruit(run, rng.int(0, 2));
+          if (run.blessingChoices) chooseBlessing(run, rng.pick(run.blessingChoices));
+          else if (!run.result) recruit(run, rng.int(0, 2));
         }
         break;
       }

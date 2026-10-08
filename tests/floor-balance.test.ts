@@ -8,29 +8,32 @@ import { characterStats, createCharacter } from '../src/engine/character';
 import { generateMap } from '../src/engine/map';
 import { newRun, rngOf } from '../src/engine/run';
 import { EQUIPMENT } from '../src/data/equipment';
+import { BLESSINGS } from '../src/data/blessings';
 import { Rng } from '../src/engine/rng';
 
-const LV: Record<number, number> = { 2: Number(process.env.L2 ?? 5), 3: Number(process.env.L3 ?? 9), 4: Number(process.env.L4 ?? 13) };
+const LV: Record<number, number> = { 1: 1, 2: Number(process.env.L2 ?? 5), 3: Number(process.env.L3 ?? 9), 4: Number(process.env.L4 ?? 13) };
 it.skipIf(!process.env.FLOOR_SIM)('各層をその層の想定パーティーで遊んだときの突破率', () => {
   const out: string[] = [];
-  for (const floor of [2, 3, 4]) {
+  for (const floor of [1, 2, 3, 4]) {
     let clear = 0; const N = 120; let lvEnd = 0; const hist: Record<string, number> = {};
     for (let i = 0; i < N; i++) {
       const rng = new Rng(500 + i * 31);
       const run = newRun(rng.pick(JOBS).name, '強打' , 900 + i);
       run.party = [];
-      for (let k = 0; k < floor; k++) {
+      // 人数：1層2人、2層3人、3層以降4人。4層は加護つき
+      for (let k = 0; k < Math.min(4, floor + 1); k++) {
         const job = rng.pick(JOBS).name;
         const c = createCharacter(job, LV[floor], k === 0);
         const lin = JOBS.find((j) => j.name === job)!.lineage;
         c.weapon = EQUIPMENT.find((e) => e.lineage === lin && e.slot === 'weapon' && e.tier === floor - 1)!.name;
         c.armor = EQUIPMENT.find((e) => e.lineage === lin && e.slot === 'armor' && e.tier === floor - 1)!.name;
-        c.skills = rng.sample(SKILLS.filter((s) => s.job === job && !s.rare), Math.min(3 + floor - 2, 5)).map((s) => s.name);
+        c.skills = rng.sample(SKILLS.filter((s) => s.job === job && !s.rare), Math.min(floor + 1, 5)).map((s) => s.name);
         const st = characterStats(c); c.hp = st.hp; c.mp = st.mp;
         c.row = ['剣士系'].includes(lin) ? 'front' : 'back';
         run.party.push(c);
       }
-      run.floor = floor; run.gold = 100 * floor;
+      run.floor = floor; run.gold = 100 * floor; run.recruits = undefined;
+      if (floor === 4) run.blessings = [rng.pick(BLESSINGS).name];
       run.map = generateMap(rngOf(run));
       const r = playRun(run, rng, floor);
       if (r.cleared || run.floor > floor) clear++;

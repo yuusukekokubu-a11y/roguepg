@@ -810,3 +810,14 @@ button.danger {
     font-size: 1.7rem;
   }
 }
+
+.blessing-chip {
+  font-size: 0.8rem;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 99px;
+  padding: 2px 8px;
+}
+.choice-card.blessing h3 {
+  color: var(--accent);
+}

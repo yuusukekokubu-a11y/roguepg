@@ -18,6 +18,10 @@ export interface AccessoryMod {
   evasionAdd?: number;
   evasionIf?: { cond: AccCondition; add: number };
   magicDamageTakenMul?: number;
+  /** 受けるダメージの倍率（加護用） */
+  damageTakenMul?: number;
+  /** 戦闘に勝ったとき、倒れていたらこの割合のHPで起き上がる（加護用） */
+  reviveAfterBattle?: number;
   regenRatio?: number; // 毎ターン最大HPの割合回復
   hpDrainRatio?: number; // 毎ターン最大HPの割合ダメージ
 

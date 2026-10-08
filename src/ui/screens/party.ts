@@ -1,6 +1,7 @@
 // パーティー画面：キャラのステータス・技・装備、持ち物の使用。
 
 import { ACCESSORY_BY_NAME, JOB_BY_NAME, SKILL_BY_NAME } from '../../data';
+import { BLESSING_BY_NAME } from '../../data/blessings';
 import { BALANCE } from '../../engine/balance';
 import { characterStats, skillSlots, type Character } from '../../engine/character';
 import {
@@ -44,6 +45,10 @@ export function partyBar(app: App, onChange?: () => void) {
       { class: 'party-meta' },
       h('span', null, `💰 ${run.gold}G`),
       h('span', null, `🎒 ${run.inventory.length}/${inventoryLimit(run)}`),
+      (run.blessings ?? []).map((n) => {
+        const b = BLESSING_BY_NAME.get(n)!;
+        return h('span', { class: 'blessing-chip', title: b.text }, `${b.icon} ${b.name}`);
+      }),
       h('button', { class: 'small-btn', onclick: () => openParty(app, onChange) }, '👥 パーティー・持ち物'),
     ),
   );

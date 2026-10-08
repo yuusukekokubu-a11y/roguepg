@@ -1,6 +1,7 @@
 // 報酬・宝箱・ショップ・休憩所・イベント・仲間加入・ランの結果。
 
 import { FLOORS, JOB_BY_NAME, SKILL_BY_NAME } from '../../data';
+import { BLESSING_BY_NAME } from '../../data/blessings';
 import { BALANCE } from '../../engine/balance';
 import { characterStats } from '../../engine/character';
 import type { GameEvent } from '../../engine/events';
@@ -10,6 +11,8 @@ import {
   buyPrice,
   clearSave,
   inventoryFull,
+  chooseBlessing,
+  choosePartner,
   recruit,
   rest,
   sell,
@@ -18,7 +21,7 @@ import {
   type Rewards,
 } from '../../engine/run';
 import { STATS, STAT_LABEL } from '../../engine/types';
-import type { App } from '../app';
+import { resumeScreen, type App } from '../app';
 import { ask, h, toast } from '../dom';
 import { entryDetail, entryTitle, isRare, skillLine } from '../describe';
 import { partyBar } from './party';
@@ -86,9 +89,9 @@ export function rewardScreen(app: App, screen: { title: string; rewards: Rewards
         screen.boss ? h('p', { class: 'levelup' }, '✨ パーティー全員のHP・MPが全回復した！') : null,
       ),
       h('div', { class: 'panel' }, h('h3', null, '拾える物'), dropsList(app, r.drops, render, taken)),
-      leaveButton(screen.boss ? '仲間を選ぶ →' : 'マップへ →', r.drops, taken, () => {
+      leaveButton(app.run!.recruits ? '仲間を選ぶ →' : app.run!.blessingChoices ? '加護を選ぶ →' : 'マップへ →', r.drops, taken, () => {
         app.save();
-        app.go(screen.boss ? { name: 'recruit' } : { name: 'map' });
+        app.go(resumeScreen(app.run!));
       }),
     );
   };
@@ -300,7 +303,15 @@ export function eventScreen(app: App, screen: { event: GameEvent }) {
 export function recruitScreen(app: App) {
   const run = app.run!;
   const cands = run.recruits ?? [];
+  // ラン開始時の2人目（相棒）選び
+  const atStart = run.party.length === 1 && run.floor === 1 && run.current === null;
   const pickOne = (i: number | null) => {
+    if (atStart && i !== null) {
+      choosePartner(run, i);
+      app.save();
+      app.go({ name: 'map' });
+      return;
+    }
     recruit(run, i);
     if (run.result) {
       clearSave();
@@ -313,7 +324,12 @@ export function recruitScreen(app: App) {
   return h(
     'div',
     { class: 'screen' },
-    h('div', { class: 'panel center' }, h('h2', null, '🤝 仲間を1人選ぶ'), h('p', { class: 'muted' }, `主人公と同じLv${run.party[0].level}で加入します。職業のかぶりもOK。`)),
+    h(
+      'div',
+      { class: 'panel center' },
+      h('h2', null, atStart ? '🤝 旅の相棒を1人選ぶ' : '🤝 仲間を1人選ぶ'),
+      h('p', { class: 'muted' }, atStart ? '酒場で3人の冒険者が声をかけてきた。いっしょに旅立つ1人を選ぼう。' : `主人公と同じLv${run.party[0].level}で加入します。職業のかぶりもOK。`),
+    ),
     h(
       'div',
       { class: 'choice-cards' },
@@ -330,7 +346,41 @@ export function recruitScreen(app: App) {
         );
       }),
     ),
-    h('button', { class: 'ghost', onclick: async () => (await ask('だれも仲間にしませんか？', '仲間にしない')) && pickOne(null) }, 'だれも選ばない'),
+    atStart ? '' : h('button', { class: 'ghost', onclick: async () => (await ask('だれも仲間にしませんか？', '仲間にしない')) && pickOne(null) }, 'だれも選ばない'),
+  );
+}
+
+export function blessingScreen(app: App) {
+  const run = app.run!;
+  const choices = (run.blessingChoices ?? []).map((n) => BLESSING_BY_NAME.get(n)!);
+  return h(
+    'div',
+    { class: 'screen' },
+    h(
+      'div',
+      { class: 'panel center' },
+      h('h2', null, '🌟 加護を1つ選ぶ'),
+      h('p', { class: 'muted' }, '炎竜を倒したパーティーに、古の力が宿る。選んだ加護は全員に、旅の最後まで効き続ける。'),
+    ),
+    h(
+      'div',
+      { class: 'choice-cards' },
+      choices.map((b) =>
+        h(
+          'button',
+          {
+            class: 'card choice-card blessing',
+            onclick: () => {
+              chooseBlessing(run, b.name);
+              app.save();
+              app.go({ name: 'map' });
+            },
+          },
+          h('h3', null, `${b.icon} ${b.name}`),
+          h('p', null, b.text),
+        ),
+      ),
+    ),
   );
 }
 

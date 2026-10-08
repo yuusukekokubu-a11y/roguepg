@@ -18,6 +18,7 @@ export type Screen =
   | { name: 'rest' }
   | { name: 'event'; event: GameEvent }
   | { name: 'recruit' }
+  | { name: 'blessing' }
   | { name: 'end' };
 
 export interface App {
@@ -45,4 +46,11 @@ export function createApp(root: HTMLElement, screens: Record<Screen['name'], Ren
     },
   };
   return app;
+}
+
+/** 中断したところから再開するときの画面 */
+export function resumeScreen(run: RunState): Screen {
+  if (run.recruits) return { name: 'recruit' };
+  if (run.blessingChoices) return { name: 'blessing' };
+  return { name: 'map' };
 }

@@ -5,58 +5,60 @@ import { jobStats } from '../../engine/character';
 import { clearSave, loadRun, newRun, starterBooks } from '../../engine/run';
 import { STATS, STAT_LABEL } from '../../engine/types';
 import { resumeScreen, type App } from '../app';
+import { floorBackground, icon, jobArt } from '../art';
 import { ask, h } from '../dom';
 import { skillLine } from '../describe';
 
 export function titleScreen(app: App) {
   const saved = loadRun();
+  const bg = h('div', { class: 'title-bg' }, h('img', { class: 'px', src: floorBackground(1), alt: '' }));
   return h(
     'div',
-    { class: 'screen title' },
-    h('h1', null, '⚔️ ローグ・パーティー'),
-    h('p', { class: 'subtitle' }, 'その場の出会いと拾い物で、毎回ちがうパーティーを組み上げる'),
+    { class: 'screen title-screen' },
+    bg,
     h(
       'div',
-      { class: 'title-buttons' },
+      { class: 'title-logo' },
+      h('h1', null, 'ローグ・パーティー'),
+      h('p', null, 'その場の出会いと拾い物で、毎回ちがうパーティーを組む'),
+      h('div', { class: 'title-party' }, ['騎士', '黒魔道士', '盗賊', '白魔道士'].map((j) => jobArt(j, 40))),
+    ),
+    h(
+      'div',
+      { class: 'win' },
       saved
         ? h(
             'button',
             {
-              class: 'primary big',
+              class: 'menu-item sel',
               onclick: () => {
                 app.run = saved;
                 app.go(resumeScreen(saved));
               },
             },
-            `つづきから（${saved.floor}層・${JOB_BY_NAME.get(saved.party[0].job)?.icon ?? ''}${saved.party[0].job} Lv${saved.party[0].level}）`,
+            'つづきから',
+            h('span', { class: 'note' }, `${saved.floor}層・${saved.party[0].job} Lv${saved.party[0].level}`),
           )
         : null,
       h(
         'button',
         {
-          class: saved ? 'big' : 'primary big',
+          class: `menu-item ${saved ? '' : 'sel'}`,
           onclick: async () => {
-            if (saved && !(await ask('いまのランを捨てて、はじめから遊びますか？', 'はじめから遊ぶ'))) return;
+            if (saved && !(await ask('いまのランを捨てて、はじめから遊ぶ？', 'はじめから遊ぶ'))) return;
             clearSave();
             app.go({ name: 'jobs' });
           },
         },
         'はじめから',
       ),
-    ),
-    h(
-      'div',
-      { class: 'panel howto' },
-      h('h3', null, '遊び方'),
       h(
         'ul',
-        null,
-        h('li', null, '主人公の職業を選んで、分かれ道のマップを進みます。'),
-        h('li', null, 'HP・MPは戦闘のあとも持ち越し。休憩所・アイテムで回復します。'),
-        h('li', null, '拾ったスキルブックを読むと技を覚えます（職業ごとに読める本が決まっています）。'),
-        h('li', null, '層のボスを倒すと、3人の候補から仲間を1人選べます。'),
-        h('li', null, '全滅したら最初からやり直し。引き継ぐものはありません。'),
-        h('li', null, '草原・氷雪地帯・火山・魔王の城の全4層。魔王を倒せばクリアです。'),
+        { class: 'howto' },
+        h('li', null, '職業を選び、分かれ道を進んで全4層の魔王の城を目指す'),
+        h('li', null, 'HP・MPは持ち越し。休憩所やアイテムで回復する'),
+        h('li', null, '本を読むと技を覚える。層のボスを倒すと仲間が増える'),
+        h('li', { class: 'muted' }, '全滅したら最初から。引き継ぐものはない'),
       ),
     ),
   );
@@ -68,26 +70,30 @@ export function jobsScreen(app: App) {
   return h(
     'div',
     { class: 'screen' },
-    h('div', { class: 'screen-head' }, h('button', { class: 'ghost', onclick: () => app.go({ name: 'title' }) }, '← もどる'), h('h2', null, '主人公の職業を選ぶ')),
-    h('p', { class: 'muted' }, '◎とても得意 ○普通 △やや苦手 ×苦手。主人公に特別な補正はありません。'),
+    h('div', { class: 'map-head' }, h('h2', null, '主人公の職業'), h('button', { class: 'btn small', onclick: () => app.go({ name: 'title' }) }, 'もどる')),
+    h('p', { class: 'win-sub' }, '◎とても得意 ○普通 △やや苦手 ×苦手。主人公に特別な補正はない。'),
     h(
       'div',
-      { class: 'job-grid' },
-      JOBS.map((j) => {
-        const st = jobStats(j.name, 1);
-        return h(
-          'button',
-          { class: 'job-card', onclick: () => app.go({ name: 'starter', job: j.name }) },
-          h('div', { class: 'job-name' }, h('span', { class: 'icon' }, j.icon), j.name, h('small', null, `${j.lineage}・${j.role}`)),
-          h(
-            'div',
-            { class: 'grades' },
-            STATS.map((s) => h('span', { class: `grade ${GRADE_CLASS[j.grades[s]]}`, title: `${STAT_LABEL[s]} ${st[s]}` }, h('b', null, STAT_LABEL[s]), j.grades[s])),
-          ),
-          h('div', { class: 'muted small' }, j.comment),
-          h('div', { class: 'archetypes' }, ARCHETYPES.filter((a) => a.job === j.name).map((a) => h('span', { class: 'tag' }, a.name))),
-        );
-      }),
+      { class: 'win grow scroll' },
+      h(
+        'div',
+        { class: 'job-list' },
+        JOBS.map((j) => {
+          const st = jobStats(j.name, 1);
+          return h(
+            'button',
+            { class: 'job-card', onclick: () => app.go({ name: 'starter', job: j.name }) },
+            jobArt(j.name, 44),
+            h('div', { class: 'jname' }, j.name, h('small', null, `${j.lineage}・${j.role}`)),
+            h(
+              'div',
+              { class: 'grades' },
+              STATS.map((s) => h('span', { class: `grade ${GRADE_CLASS[j.grades[s]]}`, title: `${STAT_LABEL[s]} ${st[s]}` }, h('b', null, STAT_LABEL[s]), j.grades[s])),
+            ),
+            h('div', { class: 'jdesc' }, `${j.comment}　`, ARCHETYPES.filter((a) => a.job === j.name).map((a) => a.name).join('／')),
+          );
+        }),
+      ),
     ),
   );
 }
@@ -98,30 +104,39 @@ export function starterScreen(app: App, screen: { job: string }) {
   return h(
     'div',
     { class: 'screen' },
-    h('div', { class: 'screen-head' }, h('button', { class: 'ghost', onclick: () => app.go({ name: 'jobs' }) }, '← もどる'), h('h2', null, `${job.icon} ${job.name}：最初に覚える技`)),
-    h('p', { class: 'muted' }, 'どの方向性から始めるかを選びます。ほかの本はダンジョンで集めましょう。'),
+    h('div', { class: 'map-head' }, h('h2', null, '最初に覚える技'), h('button', { class: 'btn small', onclick: () => app.go({ name: 'jobs' }) }, 'もどる')),
     h(
       'div',
-      { class: 'choice-cards' },
-      books.map((name) => {
-        const s = SKILL_BY_NAME.get(name)!;
-        const arch = ARCHETYPES.find((a) => a.job === job.name && a.name === s.archetype)!;
-        return h(
-          'button',
-          {
-            class: 'card choice-card',
-            onclick: () => {
-              app.run = newRun(job.name, name);
-              app.save();
-              app.go({ name: 'recruit' });
+      { class: 'win' },
+      h('div', { class: 'char-head' }, jobArt(job.name, 56), h('div', null, h('h3', null, job.name), h('p', null, `${job.lineage}・${job.role}　${job.comment}`))),
+    ),
+    h('p', { class: 'win-sub' }, 'どの方向性から始めるかを選ぶ。ほかの本はダンジョンで集める。'),
+    h(
+      'div',
+      { class: 'win grow scroll' },
+      h(
+        'div',
+        { class: 'cards' },
+        books.map((name) => {
+          const s = SKILL_BY_NAME.get(name)!;
+          const arch = ARCHETYPES.find((a) => a.job === job.name && a.name === s.archetype)!;
+          return h(
+            'button',
+            {
+              class: 'pick-card',
+              onclick: () => {
+                app.run = newRun(job.name, name);
+                app.save();
+                app.go({ name: 'recruit' });
+              },
             },
-          },
-          h('div', { class: 'tag' }, arch.name),
-          h('h3', null, `📘 ${s.name}`),
-          h('p', null, skillLine(s)),
-          h('p', { class: 'muted small' }, `方向性：${arch.description}`),
-        );
-      }),
+            icon('book', 32),
+            h('h3', null, s.name, h('span', { class: 'tag', style: 'margin-left:8px' }, arch.name)),
+            h('p', null, skillLine(s)),
+            h('p', null, `方向性：${arch.description}`),
+          );
+        }),
+      ),
     ),
   );
 }

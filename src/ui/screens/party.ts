@@ -1,6 +1,6 @@
-// パーティー画面：キャラのステータス・技・装備、持ち物の使用。
+// パーティーの表示と、パーティー・持ち物画面（キャラのステータス・技・装備、持ち物の使用）。
 
-import { ACCESSORY_BY_NAME, JOB_BY_NAME, SKILL_BY_NAME } from '../../data';
+import { ACCESSORY_BY_NAME, FLOORS, JOB_BY_NAME, SKILL_BY_NAME } from '../../data';
 import { BLESSING_BY_NAME } from '../../data/blessings';
 import { BALANCE } from '../../engine/balance';
 import { characterStats, skillSlots, type Character } from '../../engine/character';
@@ -15,44 +15,70 @@ import {
   useFieldItem,
   type RunState,
 } from '../../engine/run';
-import { STATS, STAT_LABEL } from '../../engine/types';
+import type { Stat } from '../../engine/types';
+import { STAT_LABEL } from '../../engine/types';
 import type { App } from '../app';
+import { entryIcon, icon, jobArt } from '../art';
 import { ask, bar, choose, h, toast } from '../dom';
 import { entryDetail, entryTitle, isRare, skillLine, statsText } from '../describe';
 
-/** 画面上部に出す、パーティーの簡単な状態 */
-export function partyBar(app: App, onChange?: () => void) {
+/** 上の帯：場所・お金・持ち物・メニュー */
+export function topBar(app: App, onChange?: () => void, opts: { menu?: boolean } = {}) {
   const run = app.run!;
+  const floor = FLOORS[run.floor - 1];
   return h(
     'div',
-    { class: 'party-bar' },
+    { class: 'topbar' },
+    h('span', { class: 'place' }, `${run.floor}層 ${floor.place}`),
     h(
-      'div',
-      { class: 'party-mini' },
-      run.party.map((c) => {
-        const st = characterStats(c);
-        return h(
-          'div',
-          { class: `mini-card ${c.hp <= 0 ? 'dead' : ''}` },
-          h('div', { class: 'mini-name' }, `${JOB_BY_NAME.get(c.job)!.icon} ${c.name} Lv${c.level}`, h('small', null, c.row === 'front' ? '前列' : '後列')),
-          bar(c.hp, st.hp, 'hp'),
-          bar(c.mp, st.mp, 'mp'),
-        );
-      }),
-    ),
-    h(
-      'div',
-      { class: 'party-meta' },
-      h('span', null, `💰 ${run.gold}G`),
-      h('span', null, `🎒 ${run.inventory.length}/${inventoryLimit(run)}`),
-      (run.blessings ?? []).map((n) => {
-        const b = BLESSING_BY_NAME.get(n)!;
-        return h('span', { class: 'blessing-chip', title: b.text }, `${b.icon} ${b.name}`);
-      }),
-      h('button', { class: 'small-btn', onclick: () => openParty(app, onChange) }, '👥 パーティー・持ち物'),
+      'span',
+      { class: 'right' },
+      (run.blessings ?? []).map((n) => h('span', { class: 'blessing-chip', title: BLESSING_BY_NAME.get(n)!.text }, icon('blessing', 12), n.replace('の加護', ''))),
+      h('span', { class: 'stat-chip gold' }, icon('gold', 14), `${run.gold}G`),
+      h('span', { class: 'stat-chip' }, icon('item', 14), `${run.inventory.length}/${inventoryLimit(run)}`),
+      opts.menu === false ? null : h('button', { class: 'btn small', onclick: () => openParty(app, onChange) }, 'メニュー'),
     ),
   );
 }
+
+/** パーティーの小さな表示（2×2） */
+export function partyGrid(run: RunState, opts: { activeId?: string } = {}) {
+  return h(
+    'div',
+    { class: 'win party-grid' },
+    run.party.map((c) => memberCard(c, { active: c.id === opts.activeId })),
+  );
+}
+
+export function memberCard(c: Character, opts: { active?: boolean; hp?: number; mp?: number; maxHp?: number; maxMp?: number; badges?: HTMLElement[] } = {}) {
+  const st = characterStats(c);
+  const hp = opts.hp ?? c.hp;
+  const mp = opts.mp ?? c.mp;
+  const down = hp <= 0;
+  return h(
+    'div',
+    { class: `member ${opts.active ? 'active' : ''} ${down ? 'down' : ''}` },
+    jobArt(c.job, 28),
+    h(
+      'div',
+      { class: 'm-head' },
+      h('span', { class: 'nm' }, c.isHero ? '主人公' : c.name, opts.badges?.length ? h('span', { class: 'badges' }, opts.badges) : null),
+      h('small', null, down ? '戦闘不能' : `Lv${c.level}`),
+    ),
+    bar(hp, opts.maxHp ?? st.hp, 'hp'),
+    bar(mp, opts.maxMp ?? st.mp, 'mp'),
+  );
+}
+
+/** これまでの画面で使っていた「帯＋パーティー」のまとめ */
+export function partyBar(app: App, onChange?: () => void) {
+  const run = app.run!;
+  const frag = document.createDocumentFragment();
+  frag.append(topBar(app, onChange), partyGrid(run));
+  return frag;
+}
+
+// ───────────────────────── パーティー・持ち物画面 ─────────────────────────
 
 export function openParty(app: App, onChange?: () => void) {
   const run = app.run!;
@@ -65,24 +91,31 @@ export function openParty(app: App, onChange?: () => void) {
   };
   const render = () => {
     const c = run.party.find((x) => x.id === selected) ?? run.party[0];
+    const scroll = overlay.querySelector('.scroll');
+    const top = scroll?.scrollTop ?? 0;
     overlay.replaceChildren(
       h(
         'div',
-        { class: 'dialog wide' },
-        h('div', { class: 'screen-head' }, h('h2', null, '👥 パーティー・持ち物'), h('button', { class: 'primary', onclick: close }, '閉じる')),
+        { class: 'win', style: 'height:100%' },
+        h('div', { class: 'map-head' }, h('h2', null, 'パーティー・持ち物'), h('button', { class: 'btn primary small', onclick: close }, '閉じる')),
         h(
           'div',
           { class: 'tabs' },
-          run.party.map((p) => h('button', { class: `tab ${p.id === c.id ? 'active' : ''}`, onclick: () => ((selected = p.id), render()) }, `${JOB_BY_NAME.get(p.job)!.icon} ${p.name}`)),
+          run.party.map((p) =>
+            h('button', { class: `tab ${p.id === c.id ? 'active' : ''}`, onclick: () => ((selected = p.id), render()) }, jobArt(p.job, 24), p.isHero ? '主人公' : p.name),
+          ),
         ),
-        characterPanel(run, c, render),
-        inventoryPanel(run, render),
+        h('div', { class: 'scroll grow' }, characterPanel(run, c, render), inventoryPanel(run, render)),
       ),
     );
+    const s2 = overlay.querySelector('.scroll');
+    if (s2) s2.scrollTop = top;
   };
   render();
   document.body.appendChild(overlay);
 }
+
+const SHOWN: Stat[] = ['atk', 'def', 'mag', 'spr', 'spd'];
 
 function characterPanel(run: RunState, c: Character, rerender: () => void) {
   const st = characterStats(c);
@@ -90,53 +123,72 @@ function characterPanel(run: RunState, c: Character, rerender: () => void) {
   const next = BALANCE.expToNext(c.level);
   return h(
     'div',
-    { class: 'panel char-panel' },
+    { class: 'win flat', style: 'margin-bottom:6px' },
     h(
       'div',
       { class: 'char-head' },
-      h('h3', null, `${job.icon} ${c.name}（${job.name}・${job.lineage}） Lv${c.level}`),
+      jobArt(c.job, 48),
+      h(
+        'div',
+        { style: 'flex:1;min-width:0' },
+        h('h3', null, `${c.isHero ? '主人公' : c.name} Lv${c.level}`),
+        h('p', null, `${job.name}・${job.lineage}・${job.role}`),
+        bar(c.hp, st.hp, 'hp'),
+        bar(c.mp, st.mp, 'mp'),
+        bar(c.exp, next, 'exp'),
+      ),
       h(
         'button',
         {
-          class: 'small-btn',
+          class: 'btn small',
           onclick: () => {
             c.row = c.row === 'front' ? 'back' : 'front';
             rerender();
           },
         },
-        `隊列：${c.row === 'front' ? '前列' : '後列'}（切りかえ）`,
+        c.row === 'front' ? '前列' : '後列',
       ),
     ),
-    h('div', { class: 'bars' }, bar(c.hp, st.hp, 'hp'), bar(c.mp, st.mp, 'mp'), bar(c.exp, next, 'exp')),
-    h('div', { class: 'stat-row' }, STATS.filter((s) => s !== 'hp' && s !== 'mp').map((s) => h('span', { class: 'stat' }, h('b', null, STAT_LABEL[s]), Math.round(st[s])))),
-    h('h4', null, `技（${c.skills.length}/${skillSlots(c)}枠）`),
+    h(
+      'div',
+      { class: 'stat-grid', style: 'margin-top:6px' },
+      SHOWN.map((s) => h('div', null, h('b', null, STAT_LABEL[s]), Math.round(st[s]))),
+    ),
+    h('div', { class: 'section-title' }, `技（${c.skills.length}/${skillSlots(c)}枠）`),
     h(
       'ul',
-      { class: 'skill-list' },
+      { class: 'skill-lines' },
       c.skills.map((n) => {
         const s = SKILL_BY_NAME.get(n)!;
-        return h('li', null, h('b', null, `${s.name}${s.rare ? '★' : ''}`), h('span', { class: 'muted small' }, ` ${skillLine(s)}`));
+        return h('li', null, h('span', { class: s.rare ? 'rare-text' : '' }, `${s.name}${s.rare ? '★' : ''}`), h('small', null, ` ${skillLine(s)}`));
       }),
       c.skills.length === 0 ? h('li', { class: 'muted' }, 'まだ技を覚えていない') : null,
     ),
-    h('h4', null, '装備'),
+    h('div', { class: 'section-title' }, '装備'),
     h(
-      'ul',
-      { class: 'equip-list' },
-      h('li', null, '武器：', c.weapon ? `${c.weapon}（${statsText(equipmentDef(c.weapon).stats)}）` : 'なし'),
-      h('li', null, '防具：', c.armor ? `${c.armor}（${statsText(equipmentDef(c.armor).stats)}）` : 'なし'),
-      ([0, 1] as const).map((i) => {
+      'div',
+      { class: 'equip-lines' },
+      icon('weapon', 16),
+      h('span', null, c.weapon ?? 'なし', c.weapon ? h('small', null, ` ${statsText(equipmentDef(c.weapon).stats)}`) : null),
+      h('span'),
+      icon('armor', 16),
+      h('span', null, c.armor ?? 'なし', c.armor ? h('small', null, ` ${statsText(equipmentDef(c.armor).stats)}`) : null),
+      h('span'),
+      ([0, 1] as const).flatMap((i) => {
         const a = c.accessories[i];
-        return h(
-          'li',
-          null,
-          `アクセサリー${i + 1}：`,
-          a ? h('span', null, `${a}${ACCESSORY_BY_NAME.get(a)!.rare ? '★' : ''}`, h('small', { class: 'muted' }, `（${entryDetail({ kind: 'acc', name: a })}）`)) : 'なし',
+        return [
+          icon('acc', 16),
+          h(
+            'span',
+            null,
+            a ? h('span', { class: ACCESSORY_BY_NAME.get(a)!.rare ? 'rare-text' : '' }, a) : h('span', { class: 'muted' }, 'なし'),
+            a ? h('small', null, ` ${entryDetail({ kind: 'acc', name: a })}`) : null,
+          ),
           a
             ? h(
                 'button',
                 {
-                  class: 'tiny-btn',
+                  class: 'btn small',
                   onclick: () => {
                     const err = unequipAccessory(run, c.id, i);
                     if (err) toast(err);
@@ -145,8 +197,8 @@ function characterPanel(run: RunState, c: Character, rerender: () => void) {
                 },
                 '外す',
               )
-            : null,
-        );
+            : h('span'),
+        ];
       }),
     ),
   );
@@ -155,18 +207,19 @@ function characterPanel(run: RunState, c: Character, rerender: () => void) {
 function inventoryPanel(run: RunState, rerender: () => void) {
   return h(
     'div',
-    { class: 'panel' },
-    h('h3', null, `🎒 持ち物（${run.inventory.length}/${inventoryLimit(run)}）`),
-    run.inventory.length === 0 ? h('p', { class: 'muted' }, '何も持っていない') : null,
+    { class: 'win flat' },
+    h('div', { class: 'section-title' }, `持ち物（${run.inventory.length}/${inventoryLimit(run)}）`),
+    run.inventory.length === 0 ? h('p', { class: 'muted small' }, '何も持っていない') : null,
     h(
       'ul',
-      { class: 'inv-list' },
+      { class: 'list' },
       run.inventory.map((e, i) =>
         h(
           'li',
           { class: isRare(e) ? 'rare' : '' },
-          h('div', null, h('b', null, entryTitle(e)), h('div', { class: 'muted small' }, entryDetail(e))),
-          h('div', { class: 'inv-actions' }, actionButtons(run, i, rerender)),
+          entryIcon(e, 18),
+          h('div', null, h('div', { class: 'name' }, entryTitle(e)), h('div', { class: 'desc' }, entryDetail(e))),
+          h('div', { class: 'actions' }, actionButtons(run, i, rerender)),
         ),
       ),
     ),
@@ -181,7 +234,7 @@ function actionButtons(run: RunState, index: number, rerender: () => void) {
       title,
       run.party.map((c) => {
         const why = filter(c);
-        return { label: `${JOB_BY_NAME.get(c.job)!.icon} ${c.name}`, value: c.id, note: why ?? undefined, disabled: !!why };
+        return { label: c.isHero ? `主人公（${c.job}）` : c.name, value: c.id, note: why ?? undefined, disabled: !!why };
       }),
     );
 
@@ -190,7 +243,7 @@ function actionButtons(run: RunState, index: number, rerender: () => void) {
       h(
         'button',
         {
-          class: 'tiny-btn',
+          class: 'btn small',
           onclick: async () => {
             const who = await pickChar(`${e.name} をだれに使う？`, () => null);
             if (!who) return;
@@ -209,7 +262,7 @@ function actionButtons(run: RunState, index: number, rerender: () => void) {
       h(
         'button',
         {
-          class: 'tiny-btn',
+          class: 'btn small',
           onclick: async () => {
             const who = await pickChar(`「${s.name}」をだれが読む？`, (c) => (c.job !== s.job ? `${s.job}専用` : c.skills.includes(s.name) ? '覚えている' : null));
             if (!who) return;
@@ -217,15 +270,15 @@ function actionButtons(run: RunState, index: number, rerender: () => void) {
             let forget: string | undefined;
             if (c.skills.length >= skillSlots(c)) {
               const f = await choose(
-                '技の枠がいっぱいです。どれを忘れますか？',
+                '技の枠がいっぱい。どれを忘れる？',
                 c.skills.map((n) => ({ label: n, value: n, note: skillLine(SKILL_BY_NAME.get(n)!) })),
-                '忘れた技は二度と戻りません。',
+                '忘れた技は二度と戻らない。',
               );
               if (!f) return;
               forget = f;
             }
             const err = learnBook(run, index, who, forget);
-            toast(err ?? `${c.name} は「${s.name}」を覚えた！`);
+            toast(err ?? `「${s.name}」を覚えた！`);
             rerender();
           },
         },
@@ -239,7 +292,7 @@ function actionButtons(run: RunState, index: number, rerender: () => void) {
       h(
         'button',
         {
-          class: 'tiny-btn',
+          class: 'btn small',
           onclick: async () => {
             const who = await pickChar(`${e.name} をだれが装備する？`, (c) => {
               if (JOB_BY_NAME.get(c.job)!.lineage !== d.lineage) return `${d.lineage}専用`;
@@ -261,7 +314,7 @@ function actionButtons(run: RunState, index: number, rerender: () => void) {
       h(
         'button',
         {
-          class: 'tiny-btn',
+          class: 'btn small',
           onclick: async () => {
             const who = await pickChar(`${e.name} をだれが付ける？`, () => null);
             if (!who) return;
@@ -288,9 +341,9 @@ function actionButtons(run: RunState, index: number, rerender: () => void) {
     h(
       'button',
       {
-        class: 'tiny-btn danger',
+        class: 'btn small danger',
         onclick: async () => {
-          if (!(await ask(`${e.name} を捨てますか？`, '捨てる'))) return;
+          if (!(await ask(`${e.name} を捨てる？`, '捨てる'))) return;
           removeFromInventory(run, index);
           rerender();
         },

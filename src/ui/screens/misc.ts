@@ -1,6 +1,7 @@
-// 報酬・宝箱・ショップ・休憩所・イベント・仲間加入・ランの結果。
+// 報酬・宝箱・ショップ・休憩所・イベント・仲間加入・加護・ランの結果。
+// どの画面も「帯 → パーティー → 場面の絵 → 中身（窓の中でスクロール）→ 決定ボタン」の並び。
 
-import { FLOORS, JOB_BY_NAME, SKILL_BY_NAME } from '../../data';
+import { FLOORS, SKILL_BY_NAME } from '../../data';
 import { BLESSING_BY_NAME } from '../../data/blessings';
 import { BALANCE } from '../../engine/balance';
 import { characterStats } from '../../engine/character';
@@ -9,10 +10,10 @@ import {
   addToInventory,
   buy,
   buyPrice,
-  clearSave,
-  inventoryFull,
   chooseBlessing,
   choosePartner,
+  clearSave,
+  inventoryFull,
   recruit,
   rest,
   sell,
@@ -22,36 +23,50 @@ import {
 } from '../../engine/run';
 import { STATS, STAT_LABEL } from '../../engine/types';
 import { resumeScreen, type App } from '../app';
+import { entryIcon, floorBackground, icon, jobArt } from '../art';
 import { ask, h, toast } from '../dom';
 import { entryDetail, entryTitle, isRare, skillLine } from '../describe';
-import { partyBar } from './party';
+import type { IconName } from '../pixel/icons';
+import { partyGrid, topBar } from './party';
+
+/** 場面の絵：層の背景の上に、主役のドット絵を並べる */
+function scene(floor: number, actors: HTMLElement[], kind?: { icon: IconName; label: string }) {
+  return h(
+    'div',
+    { class: 'scene' },
+    h('img', { class: 'px bg', src: floorBackground(floor), alt: '' }),
+    kind ? h('div', { class: 'kind' }, icon(kind.icon, 12), kind.label) : null,
+    h('div', { class: 'actors' }, actors),
+  );
+}
 
 /** 拾える物の一覧（拾う・置いていく） */
 function dropsList(app: App, drops: InvEntry[], rerender: () => void, taken: Set<number>) {
   const run = app.run!;
-  if (drops.length === 0) return h('p', { class: 'muted' }, '拾える物はなかった。');
+  if (drops.length === 0) return h('p', { class: 'muted small' }, '拾える物はなかった。');
   return h(
     'ul',
-    { class: 'inv-list' },
+    { class: 'list' },
     drops.map((d, i) =>
       h(
         'li',
         { class: isRare(d) ? 'rare' : '' },
-        h('div', null, h('b', null, entryTitle(d)), h('div', { class: 'muted small' }, entryDetail(d))),
+        entryIcon(d, 18),
+        h('div', null, h('div', { class: 'name' }, entryTitle(d)), h('div', { class: 'desc' }, entryDetail(d))),
         taken.has(i)
-          ? h('span', { class: 'taken' }, '✔ 拾った')
+          ? h('span', { class: 'taken' }, '拾った')
           : h(
               'button',
               {
-                class: 'tiny-btn primary',
+                class: 'btn small',
                 onclick: () => {
-                  if (!addToInventory(run, d)) return toast('持ち物がいっぱいです。「パーティー・持ち物」から使うか捨ててください');
+                  if (!addToInventory(run, d)) return toast('持ち物がいっぱい。メニューから使うか捨てよう');
                   taken.add(i);
                   app.save();
                   rerender();
                 },
               },
-              inventoryFull(run) ? '拾う（満杯）' : '拾う',
+              inventoryFull(run) ? '満杯' : '拾う',
             ),
       ),
     ),
@@ -62,10 +77,10 @@ function leaveButton(label: string, drops: InvEntry[], taken: Set<number>, go: (
   return h(
     'button',
     {
-      class: 'primary big',
+      class: 'btn primary wide',
       onclick: async () => {
         const left = drops.length - taken.size;
-        if (left > 0 && !(await ask(`拾っていない物が${left}個あります。置いていきますか？`, '置いていく'))) return;
+        if (left > 0 && !(await ask(`拾っていない物が${left}個ある。置いていく？`, '置いていく'))) return;
         go();
       },
     },
@@ -74,24 +89,26 @@ function leaveButton(label: string, drops: InvEntry[], taken: Set<number>, go: (
 }
 
 export function rewardScreen(app: App, screen: { title: string; rewards: Rewards; boss: boolean }) {
+  const run = app.run!;
   const root = h('div', { class: 'screen' });
   const taken = new Set<number>();
   const r = screen.rewards;
   const render = () => {
     root.replaceChildren(
-      partyBar(app, render),
+      topBar(app, render),
+      partyGrid(run),
       h(
         'div',
-        { class: 'panel center' },
-        h('h2', null, screen.title),
-        h('p', null, `経験値 ${r.exp}　お金 ${r.gold}G`),
-        r.levelUps.map((l) => h('p', { class: 'levelup' }, `🎉 ${l.name} は Lv${l.level} になった！`)),
-        screen.boss ? h('p', { class: 'levelup' }, '✨ パーティー全員のHP・MPが全回復した！') : null,
+        { class: 'win' },
+        h('div', { class: 'win-title' }, screen.title),
+        h('p', { class: 'win-sub' }, `経験値 ${r.exp}　お金 ${r.gold}G`),
+        r.levelUps.map((l) => h('p', { class: 'levelup' }, `${l.name} は Lv${l.level} になった`)),
+        screen.boss ? h('p', { class: 'levelup' }, 'パーティー全員のHP・MPが全回復した') : null,
       ),
-      h('div', { class: 'panel' }, h('h3', null, '拾える物'), dropsList(app, r.drops, render, taken)),
-      leaveButton(app.run!.recruits ? '仲間を選ぶ →' : app.run!.blessingChoices ? '加護を選ぶ →' : 'マップへ →', r.drops, taken, () => {
+      h('div', { class: 'win grow scroll' }, h('div', { class: 'section-title' }, '拾える物'), dropsList(app, r.drops, render, taken)),
+      leaveButton(run.recruits ? '仲間を選ぶ' : run.blessingChoices ? '加護を選ぶ' : 'マップへ', r.drops, taken, () => {
         app.save();
-        app.go(resumeScreen(app.run!));
+        app.go(resumeScreen(run));
       }),
     );
   };
@@ -100,14 +117,17 @@ export function rewardScreen(app: App, screen: { title: string; rewards: Rewards
 }
 
 export function lootScreen(app: App, screen: { title: string; text: string; drops: InvEntry[] }) {
+  const run = app.run!;
   const root = h('div', { class: 'screen' });
   const taken = new Set<number>();
   const render = () =>
     root.replaceChildren(
-      partyBar(app, render),
-      h('div', { class: 'panel center' }, h('h2', null, screen.title), h('p', null, screen.text)),
-      h('div', { class: 'panel' }, dropsList(app, screen.drops, render, taken)),
-      leaveButton('マップへ →', screen.drops, taken, () => {
+      topBar(app, render),
+      partyGrid(run),
+      scene(run.floor, [icon('treasure', 56)]),
+      h('div', { class: 'win' }, h('div', { class: 'win-title' }, screen.title), h('p', { class: 'win-sub' }, screen.text)),
+      h('div', { class: 'win grow scroll' }, dropsList(app, screen.drops, render, taken)),
+      leaveButton('マップへ', screen.drops, taken, () => {
         app.save();
         app.go({ name: 'map' });
       }),
@@ -119,83 +139,92 @@ export function lootScreen(app: App, screen: { title: string; text: string; drop
 export function shopScreen(app: App) {
   const run = app.run!;
   const root = h('div', { class: 'screen' });
+  let tab: 'buy' | 'sell' = 'buy';
   const render = () => {
     const shop = run.shop!;
     root.replaceChildren(
-      partyBar(app, render),
-      h('div', { class: 'panel center' }, h('h2', null, '🛒 ショップ'), h('p', { class: 'muted' }, '「いらっしゃい！ 使わない本は買い取るよ」')),
+      topBar(app, render),
       h(
         'div',
-        { class: 'panel' },
-        h('h3', null, '買う'),
-        h(
-          'ul',
-          { class: 'inv-list' },
-          shop.goods.map((g, i) =>
-            h(
-              'li',
-              { class: `${isRare(g.entry) ? 'rare' : ''} ${g.sold ? 'sold' : ''}` },
-              h('div', null, h('b', null, entryTitle(g.entry)), h('div', { class: 'muted small' }, entryDetail(g.entry))),
-              g.sold
-                ? h('span', { class: 'taken' }, '売り切れ')
-                : h(
-                    'button',
-                    {
-                      class: 'tiny-btn primary',
-                      disabled: run.gold < buyPrice(run, g.entry),
-                      onclick: () => {
-                        const err = buy(run, i);
-                        if (err) toast(err);
-                        app.save();
-                        render();
-                      },
-                    },
-                    `${buyPrice(run, g.entry)}G`,
-                  ),
-            ),
-          ),
-        ),
+        { class: 'win' },
+        h('div', { class: 'char-head' }, icon('shop', 40), h('div', null, h('div', { class: 'win-title' }, 'ショップ'), h('p', { class: 'win-sub' }, '「使わない本は買い取るよ。命あっての物種だ」'))),
       ),
       h(
         'div',
-        { class: 'panel' },
-        h('h3', null, '売る'),
-        run.inventory.length === 0 ? h('p', { class: 'muted' }, '売る物がない') : null,
-        h(
-          'ul',
-          { class: 'inv-list' },
-          run.inventory.map((e, i) =>
-            h(
-              'li',
-              null,
-              h('div', null, h('b', null, entryTitle(e)), h('div', { class: 'muted small' }, entryDetail(e))),
-              h(
-                'button',
-                {
-                  class: 'tiny-btn',
-                  onclick: () => {
-                    const p = sell(run, i);
-                    toast(`${e.name} を ${p}G で売った`);
-                    app.save();
-                    render();
-                  },
-                },
-                `売る ${sellPrice(run, e)}G`,
+        { class: 'tabs' },
+        h('button', { class: `tab ${tab === 'buy' ? 'active' : ''}`, onclick: () => ((tab = 'buy'), render()) }, '買う'),
+        h('button', { class: `tab ${tab === 'sell' ? 'active' : ''}`, onclick: () => ((tab = 'sell'), render()) }, `売る（${run.inventory.length}）`),
+      ),
+      h(
+        'div',
+        { class: 'win grow scroll' },
+        tab === 'buy'
+          ? h(
+              'ul',
+              { class: 'list' },
+              shop.goods.map((g, i) =>
+                h(
+                  'li',
+                  { class: `${isRare(g.entry) ? 'rare' : ''} ${g.sold ? 'sold' : ''}` },
+                  entryIcon(g.entry, 18),
+                  h('div', null, h('div', { class: 'name' }, entryTitle(g.entry)), h('div', { class: 'desc' }, entryDetail(g.entry))),
+                  g.sold
+                    ? h('span', { class: 'taken' }, '売切')
+                    : h(
+                        'button',
+                        {
+                          class: 'btn small',
+                          disabled: run.gold < buyPrice(run, g.entry),
+                          onclick: () => {
+                            const err = buy(run, i);
+                            if (err) toast(err);
+                            app.save();
+                            render();
+                          },
+                        },
+                        `${buyPrice(run, g.entry)}G`,
+                      ),
+                ),
               ),
-            ),
-          ),
-        ),
+            )
+          : run.inventory.length === 0
+            ? h('p', { class: 'muted small' }, '売る物がない')
+            : h(
+                'ul',
+                { class: 'list' },
+                run.inventory.map((e, i) =>
+                  h(
+                    'li',
+                    null,
+                    entryIcon(e, 18),
+                    h('div', null, h('div', { class: 'name' }, entryTitle(e)), h('div', { class: 'desc' }, entryDetail(e))),
+                    h(
+                      'button',
+                      {
+                        class: 'btn small',
+                        onclick: () => {
+                          const p = sell(run, i);
+                          toast(`${e.name} を ${p}G で売った`);
+                          app.save();
+                          render();
+                        },
+                      },
+                      `売る ${sellPrice(run, e)}G`,
+                    ),
+                  ),
+                ),
+              ),
       ),
       h(
         'button',
         {
-          class: 'primary big',
+          class: 'btn primary wide',
           onclick: () => {
             app.save();
             app.go({ name: 'map' });
           },
         },
-        '店を出る →',
+        '店を出る',
       ),
     );
   };
@@ -210,18 +239,29 @@ export function restScreen(app: App) {
   const pct = Math.round(BALANCE.restRatio * 100);
   const render = () =>
     root.replaceChildren(
-      partyBar(app, render),
-      h(
-        'div',
-        { class: 'panel center' },
-        h('h2', null, '🔥 休憩所'),
-        h('p', null, rested ? '焚き火で体を休めた。' : '焚き火がぱちぱちと燃えている。'),
-        rested
-          ? null
-          : h(
+      topBar(app, render),
+      partyGrid(run),
+      scene(run.floor, [icon('rest', 56)]),
+      h('div', { class: 'win grow' }, h('div', { class: 'win-title' }, '休憩所'), h('p', { class: 'story' }, rested ? '焚き火のそばで、つかの間の眠りについた。' : '消えかけた焚き火が、闇の中でかすかに揺れている。')),
+      rested
+        ? h(
+            'button',
+            {
+              class: 'btn primary wide',
+              onclick: () => {
+                app.save();
+                app.go({ name: 'map' });
+              },
+            },
+            'マップへ',
+          )
+        : h(
+            'div',
+            { class: 'cards' },
+            h(
               'button',
               {
-                class: 'primary big',
+                class: 'btn primary wide',
                 onclick: () => {
                   rest(run);
                   rested = true;
@@ -229,26 +269,31 @@ export function restScreen(app: App) {
                   render();
                 },
               },
-              `休む（HP・MPを最大の${pct}%回復、戦闘不能の仲間も復活）`,
+              `休む（HP・MP ${pct}%回復／倒れた仲間も復活）`,
             ),
-      ),
-      h(
-        'button',
-        {
-          class: rested ? 'primary big' : 'big',
-          onclick: () => {
-            app.save();
-            app.go({ name: 'map' });
-          },
-        },
-        rested ? 'マップへ →' : '休まずに出発する',
-      ),
+            h(
+              'button',
+              {
+                class: 'btn wide',
+                onclick: () => {
+                  app.save();
+                  app.go({ name: 'map' });
+                },
+              },
+              '休まずに出発する',
+            ),
+          ),
     );
   render();
   return root;
 }
 
-const EVENT_KIND_LABEL: Record<string, string> = { pair: '💞 ペアイベント', job: '⭐ 職業イベント', floor: '🗺️ この層のイベント', general: '' };
+const EVENT_KIND: Record<string, { icon: IconName; label: string } | undefined> = {
+  pair: { icon: 'pair', label: 'ペアイベント' },
+  job: { icon: 'job', label: '職業イベント' },
+  floor: { icon: 'floor', label: 'この層のイベント' },
+  general: undefined,
+};
 
 export function eventScreen(app: App, screen: { pick: EventPick }) {
   const run = app.run!;
@@ -258,28 +303,25 @@ export function eventScreen(app: App, screen: { pick: EventPick }) {
   const root = h('div', { class: 'screen' });
   const render = (outcome?: { text: string; battle?: string[] }) =>
     root.replaceChildren(
-      partyBar(app, () => render(outcome)),
+      topBar(app, () => render(outcome)),
+      partyGrid(run),
+      scene(run.floor, actors.length > 0 ? actors.map((c) => jobArt(c.job, 48)) : [icon('event', 48)], EVENT_KIND[ev.kind]),
       h(
         'div',
-        { class: `panel center event ${ev.kind}` },
-        EVENT_KIND_LABEL[ev.kind] ? h('div', { class: 'event-kind' }, EVENT_KIND_LABEL[ev.kind]) : '',
-        h('div', { class: 'event-icon' }, ev.icon),
-        actors.length > 0
-          ? h('div', { class: 'event-actors' }, actors.map((c) => h('span', { class: 'tag' }, `${JOB_BY_NAME.get(c.job)!.icon} ${c.isHero ? '主人公' : c.name}`)))
-          : '',
-        h('h2', null, eventTitle(run, pick)),
-        h('p', null, eventText(run, pick)),
+        { class: 'win grow scroll' },
+        h('div', { class: 'win-title' }, eventTitle(run, pick)),
+        h('p', { class: 'story' }, eventText(run, pick)),
         outcome
           ? h('p', { class: 'outcome' }, outcome.text)
           : h(
               'div',
-              { class: 'choice-list' },
+              { class: 'choice-list', style: 'margin-top:6px' },
               ev.choices.map((_, i) => {
                 const why = choiceDisabled(run, pick, i);
                 return h(
                   'button',
                   {
-                    class: 'choice',
+                    class: 'menu-item',
                     disabled: !!why,
                     onclick: () => {
                       const out = resolveChoice(run, pick, i);
@@ -297,10 +339,10 @@ export function eventScreen(app: App, screen: { pick: EventPick }) {
         ? h(
             'button',
             {
-              class: 'primary big',
+              class: 'btn primary wide',
               onclick: () => (outcome.battle ? app.go({ name: 'battle', enemies: outcome.battle, kind: 'normal', boss: false }) : app.go({ name: 'map' })),
             },
-            outcome.battle ? '戦闘へ →' : 'マップへ →',
+            outcome.battle ? '戦闘へ' : 'マップへ',
           )
         : '',
     );
@@ -332,29 +374,33 @@ export function recruitScreen(app: App) {
   return h(
     'div',
     { class: 'screen' },
+    atStart ? null : topBar(app, undefined, { menu: false }),
     h(
       'div',
-      { class: 'panel center' },
-      h('h2', null, atStart ? '🤝 旅の相棒を1人選ぶ' : '🤝 仲間を1人選ぶ'),
-      h('p', { class: 'muted' }, atStart ? '酒場で3人の冒険者が声をかけてきた。いっしょに旅立つ1人を選ぼう。' : `主人公と同じLv${run.party[0].level}で加入します。職業のかぶりもOK。`),
+      { class: 'win' },
+      h('div', { class: 'win-title' }, atStart ? '旅の相棒を1人選ぶ' : '仲間を1人選ぶ'),
+      h('p', { class: 'win-sub' }, atStart ? '酒場の隅で、3人の冒険者がこちらを値踏みしている。' : `主人公と同じLv${run.party[0].level}で加わる。職業のかぶりもかまわない。`),
     ),
     h(
       'div',
-      { class: 'choice-cards' },
-      cands.map((c, i) => {
-        const job = JOB_BY_NAME.get(c.job)!;
-        const st = characterStats(c);
-        return h(
-          'button',
-          { class: 'card choice-card', onclick: () => pickOne(i) },
-          h('h3', null, `${job.icon} ${job.name}`),
-          h('div', { class: 'muted small' }, `${job.lineage}・${job.role}　${job.comment}`),
-          h('div', { class: 'stat-row' }, STATS.map((s) => h('span', { class: 'stat' }, h('b', null, STAT_LABEL[s]), st[s]))),
-          h('p', null, c.skills.map((n) => `📘 ${n}：${skillLine(SKILL_BY_NAME.get(n)!)}`).join('\n')),
-        );
-      }),
+      { class: 'win grow scroll' },
+      h(
+        'div',
+        { class: 'cards' },
+        cands.map((c, i) => {
+          const st = characterStats(c);
+          return h(
+            'button',
+            { class: 'pick-card', onclick: () => pickOne(i) },
+            jobArt(c.job, 40),
+            h('h3', null, c.job),
+            h('div', { class: 'stat-row' }, STATS.map((s) => h('span', null, h('b', null, STAT_LABEL[s]), st[s]))),
+            h('p', null, c.skills.map((n) => `${n}：${skillLine(SKILL_BY_NAME.get(n)!)}`).join('\n')),
+          );
+        }),
+      ),
     ),
-    atStart ? '' : h('button', { class: 'ghost', onclick: async () => (await ask('だれも仲間にしませんか？', '仲間にしない')) && pickOne(null) }, 'だれも選ばない'),
+    atStart ? '' : h('button', { class: 'btn wide', onclick: async () => (await ask('だれも仲間にしない？', '仲間にしない')) && pickOne(null) }, 'だれも選ばない'),
   );
 }
 
@@ -364,28 +410,30 @@ export function blessingScreen(app: App) {
   return h(
     'div',
     { class: 'screen' },
+    topBar(app, undefined, { menu: false }),
+    partyGrid(run),
+    scene(run.floor, [icon('blessing', 56)]),
+    h('div', { class: 'win' }, h('div', { class: 'win-title' }, '加護を1つ選ぶ'), h('p', { class: 'win-sub' }, '炎竜の骸から、古の力が立ちのぼる。選んだ加護は全員に、旅の最後まで宿り続ける。')),
     h(
       'div',
-      { class: 'panel center' },
-      h('h2', null, '🌟 加護を1つ選ぶ'),
-      h('p', { class: 'muted' }, '炎竜を倒したパーティーに、古の力が宿る。選んだ加護は全員に、旅の最後まで効き続ける。'),
-    ),
-    h(
-      'div',
-      { class: 'choice-cards' },
-      choices.map((b) =>
-        h(
-          'button',
-          {
-            class: 'card choice-card blessing',
-            onclick: () => {
-              chooseBlessing(run, b.name);
-              app.save();
-              app.go({ name: 'map' });
+      { class: 'win grow scroll' },
+      h(
+        'div',
+        { class: 'choice-list' },
+        choices.map((b) =>
+          h(
+            'button',
+            {
+              class: 'menu-item',
+              onclick: () => {
+                chooseBlessing(run, b.name);
+                app.save();
+                app.go({ name: 'map' });
+              },
             },
-          },
-          h('h3', null, `${b.icon} ${b.name}`),
-          h('p', null, b.text),
+            h('span', { class: 'gold-text' }, b.name),
+            h('small', null, b.text),
+          ),
         ),
       ),
     ),
@@ -399,37 +447,41 @@ export function endScreen(app: App) {
   return h(
     'div',
     { class: 'screen' },
+    scene(
+      run.floor,
+      run.party.map((c) => jobArt(c.job, 40)),
+    ),
     h(
       'div',
-      { class: `panel center end ${dead ? 'dead' : 'clear'}` },
-      h('h1', null, dead ? '💀 ゲームオーバー' : '👑 魔王討伐！'),
+      { class: 'win grow scroll' },
+      h('div', { class: 'win-title', style: `font-size:1.4rem;color:${dead ? 'var(--blood)' : 'var(--gold)'}` }, dead ? '全滅' : '魔王討伐'),
       h(
         'p',
-        null,
+        { class: 'story' },
         dead
-          ? `${run.floor}層「${FLOORS[run.floor - 1].place}」でパーティーは全滅した。何も引き継がず、最初からやり直しだ。`
-          : '魔王は倒れ、城に光が戻った。この旅で集めた仲間とともに、伝説が語り継がれる。',
+          ? `${run.floor}層「${FLOORS[run.floor - 1].place}」で、パーティーは力尽きた。何も残らない。また最初から。`
+          : '魔王は崩れ落ち、城に夜明けの光が差した。この旅で集った仲間の名は、長く語り継がれるだろう。',
       ),
       h(
         'ul',
-        { class: 'summary' },
+        { class: 'howto', style: 'margin-top:8px' },
         h('li', null, `到達：${run.floor}層「${FLOORS[run.floor - 1].place}」`),
         h('li', null, `主人公：${hero.job} Lv${hero.level}`),
-        h('li', null, `戦闘回数：${run.log.battles}（強敵 ${run.log.elites}）`),
-        h('li', null, `倒した敵：${run.log.kills}体`),
-        h('li', null, `パーティー：${run.party.map((c) => `${JOB_BY_NAME.get(c.job)!.icon}${c.name} Lv${c.level}`).join('、')}`),
+        h('li', null, `戦闘：${run.log.battles}回（強敵 ${run.log.elites}）／倒した敵：${run.log.kills}体`),
+        h('li', null, `パーティー：${run.party.map((c) => `${c.isHero ? '主人公' : c.name} Lv${c.level}`).join('、')}`),
+        run.blessings?.length ? h('li', null, `加護：${run.blessings.join('、')}`) : null,
       ),
-      h(
-        'button',
-        {
-          class: 'primary big',
-          onclick: () => {
-            app.run = null;
-            app.go({ name: 'title' });
-          },
+    ),
+    h(
+      'button',
+      {
+        class: 'btn primary wide',
+        onclick: () => {
+          app.run = null;
+          app.go({ name: 'title' });
         },
-        'タイトルへ',
-      ),
+      },
+      'タイトルへ',
     ),
   );
 }

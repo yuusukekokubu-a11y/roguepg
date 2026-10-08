@@ -21,7 +21,6 @@ export function costLabel(c: Cost): string {
   return `${c.kind.toUpperCase()}${size}`;
 }
 
-export const KIND_ICON: Record<InvEntry['kind'], string> = { item: '🧪', book: '📘', equip: '🗡️', acc: '💍' };
 export const KIND_LABEL: Record<InvEntry['kind'], string> = { item: 'アイテム', book: 'スキルブック', equip: '装備', acc: 'アクセサリー' };
 
 export function statsText(stats: Partial<Record<Stat, number>>): string {
@@ -36,7 +35,7 @@ export function skillLine(s: SkillDef): string {
 
 export function entryTitle(e: InvEntry): string {
   const rare = isRare(e) ? '★' : '';
-  return `${KIND_ICON[e.kind]} ${e.name}${rare}`;
+  return `${e.name}${rare}`;
 }
 
 export function isRare(e: InvEntry): boolean {

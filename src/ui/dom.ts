@@ -34,10 +34,16 @@ export function svg(tag: string, attrs: Record<string, string | number>, ...chil
   return el;
 }
 
-export function bar(value: number, max: number, kind: 'hp' | 'mp' | 'exp') {
+/** HP・MP・経験値のゲージ（数字つき） */
+export function bar(value: number, max: number, kind: 'hp' | 'mp' | 'exp', label = true) {
   const pct = max > 0 ? Math.max(0, Math.min(100, (value / max) * 100)) : 0;
   const low = kind === 'hp' && pct <= 30 ? ' low' : '';
-  return h('div', { class: `bar ${kind}${low}` }, h('div', { class: 'fill', style: `width:${pct}%` }), h('span', null, `${kind.toUpperCase()} ${value}/${max}`));
+  return h(
+    'div',
+    { class: `bar ${kind}${low}` },
+    h('div', { class: 'track' }, h('i', { style: `width:${pct}%` })),
+    label ? h('span', null, `${value}/${max}`) : null,
+  );
 }
 
 /** 選択肢ダイアログ。選ばれた値（キャンセルなら null）を返す */
@@ -52,22 +58,22 @@ export function choose<T>(title: string, options: { label: string; value: T; not
       { class: 'overlay', onclick: (e: Event) => e.target === overlay && close(null) },
       h(
         'div',
-        { class: 'dialog' },
-        h('h3', null, title),
-        message ? h('p', { class: 'muted' }, message) : null,
+        { class: 'win' },
+        h('div', { class: 'win-title' }, title),
+        message ? h('p', { class: 'win-sub' }, message) : null,
         h(
           'div',
-          { class: 'choice-list' },
+          { class: 'choice-list scroll' },
           options.map((o) =>
             h(
               'button',
-              { class: 'choice', disabled: o.disabled, onclick: () => close(o.value) },
+              { class: 'menu-item', disabled: o.disabled, onclick: () => close(o.value) },
               h('span', null, o.label),
               o.note ? h('small', null, o.note) : null,
             ),
           ),
         ),
-        h('button', { class: 'ghost', onclick: () => close(null) }, 'やめる'),
+        h('button', { class: 'btn', onclick: () => close(null) }, 'やめる'),
       ),
     );
     document.body.appendChild(overlay);
@@ -75,7 +81,7 @@ export function choose<T>(title: string, options: { label: string; value: T; not
 }
 
 export function toast(text: string) {
-  const t = h('div', { class: 'toast' }, text);
+  const t = h('div', { class: 'toast win' }, text);
   document.body.appendChild(t);
   setTimeout(() => t.classList.add('show'), 10);
   setTimeout(() => {

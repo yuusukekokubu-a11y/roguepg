@@ -48,7 +48,7 @@ export function mapScreen(app: App) {
         return;
       }
       case 'event':
-        app.go({ name: 'event', event: pickEvent(run) });
+        app.go({ name: 'event', pick: pickEvent(run) });
         return;
     }
   };

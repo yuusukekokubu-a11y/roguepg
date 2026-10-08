@@ -4,7 +4,7 @@ import { FLOORS, JOB_BY_NAME, SKILL_BY_NAME } from '../../data';
 import { BLESSING_BY_NAME } from '../../data/blessings';
 import { BALANCE } from '../../engine/balance';
 import { characterStats } from '../../engine/character';
-import type { GameEvent } from '../../engine/events';
+import { choiceDisabled, choiceLabel, eventText, eventTitle, resolveChoice, type EventPick } from '../../engine/events';
 import {
   addToInventory,
   buy,
@@ -248,38 +248,46 @@ export function restScreen(app: App) {
   return root;
 }
 
-export function eventScreen(app: App, screen: { event: GameEvent }) {
+const EVENT_KIND_LABEL: Record<string, string> = { pair: '💞 ペアイベント', job: '⭐ 職業イベント', floor: '🗺️ この層のイベント', general: '' };
+
+export function eventScreen(app: App, screen: { pick: EventPick }) {
   const run = app.run!;
-  const ev = screen.event;
+  const pick = screen.pick;
+  const ev = pick.event;
+  const actors = pick.actorIds.map((id) => run.party.find((c) => c.id === id)!).filter(Boolean);
   const root = h('div', { class: 'screen' });
   const render = (outcome?: { text: string; battle?: string[] }) =>
     root.replaceChildren(
       partyBar(app, () => render(outcome)),
       h(
         'div',
-        { class: 'panel center event' },
+        { class: `panel center event ${ev.kind}` },
+        EVENT_KIND_LABEL[ev.kind] ? h('div', { class: 'event-kind' }, EVENT_KIND_LABEL[ev.kind]) : '',
         h('div', { class: 'event-icon' }, ev.icon),
-        h('h2', null, ev.title),
-        h('p', null, ev.text),
+        actors.length > 0
+          ? h('div', { class: 'event-actors' }, actors.map((c) => h('span', { class: 'tag' }, `${JOB_BY_NAME.get(c.job)!.icon} ${c.isHero ? '主人公' : c.name}`)))
+          : '',
+        h('h2', null, eventTitle(run, pick)),
+        h('p', null, eventText(run, pick)),
         outcome
           ? h('p', { class: 'outcome' }, outcome.text)
           : h(
               'div',
               { class: 'choice-list' },
-              ev.choices.map((c) => {
-                const why = c.disabled?.(run) ?? null;
+              ev.choices.map((_, i) => {
+                const why = choiceDisabled(run, pick, i);
                 return h(
                   'button',
                   {
                     class: 'choice',
                     disabled: !!why,
                     onclick: () => {
-                      const out = c.resolve(run);
+                      const out = resolveChoice(run, pick, i);
                       app.save();
                       render(out);
                     },
                   },
-                  h('span', null, c.label),
+                  h('span', null, choiceLabel(run, pick, i)),
                   why ? h('small', null, why) : null,
                 );
               }),

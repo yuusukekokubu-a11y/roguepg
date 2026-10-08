@@ -20,6 +20,8 @@ export interface Character {
   accessories: [string | null, string | null];
   row: 'front' | 'back';
   isHero: boolean;
+  /** イベントなどで永久に上がった能力値 */
+  bonus?: Partial<Record<Stat, number>>;
 }
 
 export type Stats = Record<Stat, number>;
@@ -48,6 +50,7 @@ export function characterStats(c: Character): Stats {
     if (!def) continue;
     for (const [k, v] of Object.entries(def.stats)) st[k as Stat] += v;
   }
+  for (const [k, v] of Object.entries(c.bonus ?? {})) st[k as Stat] += v;
   for (const mod of accessoryMods(c)) {
     for (const [k, v] of Object.entries(mod.statMul ?? {})) st[k as Stat] = Math.max(1, Math.round(st[k as Stat] * v));
   }

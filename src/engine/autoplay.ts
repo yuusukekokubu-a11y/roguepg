@@ -4,7 +4,7 @@
 import { ITEM_BY_NAME, SKILL_BY_NAME } from '../data';
 import { Battle, type Command, type Unit } from './battle';
 import { characterStats, skillSlots } from './character';
-import { pickEvent } from './events';
+import { choiceDisabled, pickEvent, resolveChoice } from './events';
 import {
   addToInventory,
   battleHooks,
@@ -176,9 +176,9 @@ export function playRun(run: RunState, rng: Rng, lastFloor = 99): SimResult {
         break;
       }
       case 'event': {
-        const ev = pickEvent(run);
-        const ch = ev.choices.find((c) => !c.disabled?.(run)) ?? ev.choices[ev.choices.length - 1];
-        const out = ch.resolve(run);
+        const pick = pickEvent(run);
+        const ok = pick.event.choices.map((_, i) => i).filter((i) => !choiceDisabled(run, pick, i));
+        const out = resolveChoice(run, pick, ok.length > 0 ? rng.pick(ok) : pick.event.choices.length - 1);
         if (out.battle) {
           const b = runBattle(run, out.battle, 'normal', rng);
           const r = b.finish();

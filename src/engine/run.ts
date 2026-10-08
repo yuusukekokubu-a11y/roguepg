@@ -37,6 +37,8 @@ export interface RunState {
   blessingChoices?: string[];
   /** 受けている加護 */
   blessings?: string[];
+  /** このランで起きたイベント（同じイベントは二度起きない） */
+  seenEvents?: string[];
   result?: 'dead' | 'clear';
 }
 

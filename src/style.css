@@ -821,3 +821,21 @@ button.danger {
 .choice-card.blessing h3 {
   color: var(--accent);
 }
+
+.event-kind {
+  font-size: 0.8rem;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+.event.pair {
+  border-color: var(--rare);
+}
+.event.job {
+  border-color: var(--accent);
+}
+.event-actors {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}

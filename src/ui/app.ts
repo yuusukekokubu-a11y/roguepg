@@ -2,7 +2,7 @@
 
 import type { RunState } from '../engine/run';
 import { saveRun } from '../engine/run';
-import type { GameEvent } from '../engine/events';
+import type { EventPick } from '../engine/events';
 import type { Rewards, InvEntry } from '../engine/run';
 import type { BattleKind } from '../engine/battle';
 
@@ -16,7 +16,7 @@ export type Screen =
   | { name: 'loot'; title: string; text: string; drops: InvEntry[] }
   | { name: 'shop' }
   | { name: 'rest' }
-  | { name: 'event'; event: GameEvent }
+  | { name: 'event'; pick: EventPick }
   | { name: 'recruit' }
   | { name: 'blessing' }
   | { name: 'end' };

@@ -516,8 +516,9 @@ button:focus-visible {
   margin-top: 14vh;
 }
 .title-logo h1 {
-  font-size: clamp(2rem, 11vw, 2.8rem);
-  letter-spacing: 0.08em;
+  font-size: clamp(1.6rem, 8.6vw, 2.5rem);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
   color: var(--gold);
   text-shadow: 3px 3px 0 #2a1a08, 0 0 18px rgba(212, 168, 74, 0.35);
 }

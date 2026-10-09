@@ -19,6 +19,15 @@ export function enemyArt(name: string, size = 56): HTMLImageElement {
   return pixelImg(s, Math.round(size * scale), name);
 }
 
+/** 行動順などの小さな枠用：大きさをそろえた敵の絵（ボスも同じ大きさ） */
+export function enemyIcon(name: string, size = 26): HTMLImageElement {
+  const img = pixelImg(ENEMY_SPRITES[name] ?? UNKNOWN_SPRITE, size, name);
+  img.style.width = `${size}px`;
+  img.style.height = `${size}px`;
+  img.style.objectFit = 'contain';
+  return img;
+}
+
 export function icon(name: IconName, size = 16): HTMLImageElement {
   return pixelImg(ICONS[name], size, '');
 }

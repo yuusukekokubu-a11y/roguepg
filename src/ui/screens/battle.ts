@@ -6,7 +6,7 @@ import { Battle, type Command, type Unit } from '../../engine/battle';
 import { battleHooks, battleRewards, bossCleared, clearSave } from '../../engine/run';
 import { STATUS_LABEL, STAT_LABEL, type Effect, type StatusId, type TargetKind } from '../../engine/types';
 import type { App } from '../app';
-import { enemyArt, floorBackground, jobArt } from '../art';
+import { enemyArt, enemyIcon, floorBackground, jobArt } from '../art';
 import { bar, h, sleep, toast } from '../dom';
 import { TARGET_LABEL, costLabel } from '../describe';
 import { topBar } from './party';
@@ -72,7 +72,7 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
           h(
             'span',
             { class: `chip ${o.unit.side === 'enemy' ? 'enemy' : ''} ${i === 0 ? 'now' : ''}`, title: o.unit.name },
-            o.unit.side === 'enemy' ? enemyArt(o.unit.enemy!.name, 26) : jobArt(o.unit.char!.job, 26),
+            o.unit.side === 'enemy' ? enemyIcon(o.unit.enemy!.name, 26) : jobArt(o.unit.char!.job, 26),
             letter(o.unit),
             o.charging ? h('span', { class: 'charge' }, '溜め') : null,
           ),

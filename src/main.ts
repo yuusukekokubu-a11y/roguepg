@@ -21,4 +21,13 @@ const app = createApp(document.getElementById('app')!, {
   end: endScreen,
 });
 
+// 選択カーソル（▶）は、同じメニューの中で最後に触った項目に1つだけ出す
+const moveCursor = (e: Event) => {
+  const item = (e.target as HTMLElement | null)?.closest?.('.menu-item');
+  if (!(item instanceof HTMLButtonElement) || item.disabled || item.classList.contains('sel')) return;
+  item.parentElement?.querySelectorAll(':scope > .menu-item.sel').forEach((x) => x.classList.remove('sel'));
+  item.classList.add('sel');
+};
+for (const type of ['pointerover', 'pointerdown', 'focusin']) document.addEventListener(type, moveCursor);
+
 app.go({ name: 'title' });

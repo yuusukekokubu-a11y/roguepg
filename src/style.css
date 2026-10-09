@@ -216,9 +216,7 @@ button:focus-visible {
   color: var(--gold);
   opacity: 0;
 }
-.menu-item:hover:not(:disabled)::before,
-.menu-item:focus-visible::before,
-.menu-item.sel::before {
+.menu-item.sel:not(:disabled)::before {
   opacity: 1;
   animation: nudge 0.5s steps(2) infinite;
 }

@@ -33,6 +33,8 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
   let lockedUntil = 0;
   let wasInput = false;
   let endLocked = false;
+  // 最後に選んだコマンド（次の番もそこにカーソルを置く）
+  let lastCmd = 0;
   let mode: Mode = { kind: 'root' };
   let infoUid: number | null = null;
   const prevHp = new Map<number, number>();
@@ -225,12 +227,33 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
       h(
         'div',
         { class: 'cmds' },
-        h('button', { class: 'menu-item sel', disabled: extra, onclick: () => pick('たたかう', 'enemy', [], (t) => ({ type: 'attack', target: t! })) }, 'たたかう', h('small', null, `MP+${battle.attackMpGain(u)}`)),
-        h('button', { class: 'menu-item', onclick: () => ((mode = { kind: 'skills' }), render()) }, 'スキル'),
-        h('button', { class: 'menu-item', disabled: extra, onclick: () => ((mode = { kind: 'items' }), render()) }, 'どうぐ'),
-        h('button', { class: 'menu-item', onclick: () => submit({ type: 'defend' }) }, extra ? 'おわる' : 'ぼうぎょ'),
-        h('button', { class: 'menu-item', disabled: extra, onclick: () => submit({ type: 'swap' }) }, 'いれかえ', h('small', null, `→${u.row === 'front' ? '後列' : '前列'}`)),
-        h('button', { class: 'menu-item', disabled: true }, 'にげる'),
+        cmdButtons([
+          { label: ['たたかう', h('small', null, `MP+${battle.attackMpGain(u)}`)], disabled: extra, run: () => pick('たたかう', 'enemy', [], (t) => ({ type: 'attack', target: t! })) },
+          { label: ['スキル'], run: () => ((mode = { kind: 'skills' }), render()) },
+          { label: ['どうぐ'], disabled: extra, run: () => ((mode = { kind: 'items' }), render()) },
+          { label: [extra ? 'おわる' : 'ぼうぎょ'], run: () => submit({ type: 'defend' }) },
+          { label: ['いれかえ', h('small', null, `→${u.row === 'front' ? '後列' : '前列'}`)], disabled: extra, run: () => submit({ type: 'swap' }) },
+          { label: ['にげる'], disabled: true, run: () => {} },
+        ]),
+      ),
+    );
+  };
+
+  const cmdButtons = (cmds: { label: (string | HTMLElement)[]; disabled?: boolean; run: () => void }[]) => {
+    // 前回のコマンドが選べないとき（連続行動中など）は、選べる最初のコマンドにカーソルを置く
+    const selIndex = cmds[lastCmd] && !cmds[lastCmd].disabled ? lastCmd : cmds.findIndex((c) => !c.disabled);
+    return cmds.map((c, i) =>
+      h(
+        'button',
+        {
+          class: `menu-item ${i === selIndex ? 'sel' : ''}`,
+          disabled: !!c.disabled,
+          onclick: () => {
+            lastCmd = i;
+            c.run();
+          },
+        },
+        ...c.label,
       ),
     );
   };

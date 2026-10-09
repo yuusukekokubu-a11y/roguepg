@@ -114,3 +114,46 @@ describe('敵の行動予告と変異個体', () => {
     expect(g.base.hp).toBeGreaterThan(a.base.hp);
   });
 });
+
+describe('技の枠（4枠で固定）', () => {
+  it('レベルが上がっても枠は4のまま。いっぱいなら本は読めない', async () => {
+    const { learnBook, SLOTS_FULL } = await import('../src/engine/run');
+    const { skillSlots } = await import('../src/engine/character');
+    const run = newRun('戦士', '強打', 31);
+    const hero = run.party[0];
+    hero.level = 20;
+    expect(skillSlots(hero)).toBe(4);
+    hero.skills = ['強打', '二段斬り', '雄叫び', '乱れ打ち'];
+    run.inventory.push({ kind: 'book', name: '百裂撃' });
+    expect(learnBook(run, run.inventory.length - 1, hero.id)).toBe(SLOTS_FULL);
+    expect(hero.skills).toHaveLength(4);
+  });
+
+  it('枠は1人あたり+2まで増やせる', async () => {
+    const { addSkillSlot } = await import('../src/engine/run');
+    const { skillSlots } = await import('../src/engine/character');
+    const run = newRun('戦士', '強打', 32);
+    const hero = run.party[0];
+    expect(addSkillSlot(run, hero.id)).toBeNull();
+    expect(addSkillSlot(run, hero.id)).toBeNull();
+    expect(addSkillSlot(run, hero.id)).not.toBeNull();
+    expect(skillSlots(hero)).toBe(6);
+  });
+
+  it('休憩所・イベントでは無料で技を忘れられる', async () => {
+    const { forgetSkill } = await import('../src/engine/run');
+    const run = newRun('戦士', '強打', 33);
+    run.gold = 0;
+    expect(forgetSkill(run, run.party[0].id, '強打', 0)).toBeNull();
+    expect(run.party[0].skills).not.toContain('強打');
+  });
+
+  it('忘却の泉・古の書庫のイベントは、結果のあとに人を選ばせる', async () => {
+    const { EVENTS } = await import('../src/engine/events');
+    const { Rng } = await import('../src/engine/rng');
+    const run = newRun('戦士', '強打', 34);
+    const ctx = { run, actors: [], rng: new Rng(1) };
+    expect(EVENTS.find((e) => e.id === 'oblivion')!.choices[0].resolve(ctx).pick).toBe('forget');
+    expect(EVENTS.find((e) => e.id === 'archive')!.choices[0].resolve(ctx).pick).toBe('slot');
+  });
+});

@@ -21,6 +21,8 @@ export interface Character {
   accessories: [string | null, string | null];
   /** 外せない呪いのアクセサリー（アセンション10段） */
   cursed?: string;
+  /** イベントで増えた技の枠 */
+  slotBonus?: number;
   row: 'front' | 'back';
   isHero: boolean;
   /** イベントなどで永久に上がった能力値 */
@@ -115,7 +117,7 @@ export function clampVitals(c: Character) {
 }
 
 export function skillSlots(c: Character): number {
-  return BALANCE.skillSlots(c.level);
+  return BALANCE.skillSlots + Math.min(BALANCE.maxSlotBonus, c.slotBonus ?? 0);
 }
 
 export function canUseBook(c: Character, bookJob: string): boolean {

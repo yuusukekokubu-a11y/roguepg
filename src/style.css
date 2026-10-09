@@ -1855,3 +1855,9 @@ button:focus-visible {
   font-size: 0.7rem;
   color: var(--ink);
 }
+
+/* 技の空き枠 */
+.skill-lines li.slot-empty {
+  color: var(--dim);
+  border-style: dashed;
+}

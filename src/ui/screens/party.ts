@@ -159,14 +159,16 @@ function characterPanel(run: RunState, c: Character, rerender: () => void) {
       SHOWN.map((s) => h('div', null, h('b', null, STAT_LABEL[s]), Math.round(st[s]))),
     ),
     h('div', { class: 'section-title' }, `技（${c.skills.length}/${skillSlots(c)}枠）`),
+    // 枠を全部並べ、空いている枠は「空き」と出す
     h(
       'ul',
       { class: 'skill-lines' },
-      c.skills.map((n) => {
+      Array.from({ length: Math.max(skillSlots(c), c.skills.length) }, (_, i) => {
+        const n = c.skills[i];
+        if (!n) return h('li', { class: 'slot-empty' }, `${i + 1}. 空き`);
         const s = SKILL_BY_NAME.get(n)!;
-        return h('li', null, h('span', { class: s.rare ? 'rare-text' : '' }, `${s.name}${s.rare ? '★' : ''}`), h('small', null, ` ${skillLine(s)}`));
+        return h('li', null, h('span', { class: s.rare ? 'rare-text' : '' }, `${i + 1}. ${s.name}${s.rare ? '★' : ''}`), h('small', null, ` ${skillLine(s)}`));
       }),
-      c.skills.length === 0 ? h('li', { class: 'muted' }, 'まだ技を覚えていない') : null,
     ),
     h('div', { class: 'section-title' }, '装備'),
     h(
@@ -259,20 +261,14 @@ function actionButtons(run: RunState, index: number, rerender: () => void) {
         {
           class: 'btn small',
           onclick: async () => {
-            const who = await pickChar(`「${s.name}」をだれが読む？`, (c) => (c.job !== s.job ? `${s.job}専用` : c.skills.includes(s.name) ? '覚えている' : null));
+            // 枠がいっぱいの人は読めない（ショップ・休憩所・一部のイベントで忘れさせてから）
+            const who = await pickChar(
+              `「${s.name}」をだれが読む？`,
+              (c) => (c.job !== s.job ? `${s.job}専用` : c.skills.includes(s.name) ? '覚えている' : c.skills.length >= skillSlots(c) ? `技の枠がいっぱい（${c.skills.length}/${skillSlots(c)}）` : null),
+              (c) => `技 ${c.skills.length}/${skillSlots(c)}`,
+            );
             if (!who) return;
-            const c = run.party.find((x) => x.id === who)!;
-            let forget: string | undefined;
-            if (c.skills.length >= skillSlots(c)) {
-              const f = await choose(
-                '技の枠がいっぱい。どれを忘れる？',
-                c.skills.map((n) => ({ label: n, value: n, note: skillLine(SKILL_BY_NAME.get(n)!) })),
-                '忘れた技は二度と戻らない。',
-              );
-              if (!f) return;
-              forget = f;
-            }
-            const err = learnBook(run, index, who, forget);
+            const err = learnBook(run, index, who);
             toast(err ?? `「${s.name}」を覚えた！`);
             rerender();
           },

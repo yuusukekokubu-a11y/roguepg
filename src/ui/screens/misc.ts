@@ -4,7 +4,8 @@
 import { FLOORS, JOBS, SKILL_BY_NAME } from '../../data';
 import { BLESSING_BY_NAME } from '../../data/blessings';
 import { BALANCE } from '../../engine/balance';
-import { characterStats } from '../../engine/character';
+import { characterStats, skillSlots } from '../../engine/character';
+import type { EventOutcome } from '../../engine/eventKit';
 import { choiceDisabled, choiceLabel, eventText, eventTitle, resolveChoice, type EventPick } from '../../engine/events';
 import {
   addToInventory,
@@ -21,6 +22,8 @@ import {
   trainOptions,
   forgetPrice,
   forgetSkill,
+  addSkillSlot,
+  rules,
   orderBooks,
   orderPrice,
   sell,
@@ -318,27 +321,53 @@ export function shopScreen(app: App) {
   return root;
 }
 
+/**
+ * 技を1つ忘れる流れ（だれの → どの技）。price はショップなら値段、休憩所・イベントは 0。
+ * 忘れたら true を返す
+ */
+async function forgetFlow(app: App, price?: number): Promise<boolean> {
+  const run = app.run!;
+  const who = await choose(
+    'だれの技を忘れる？',
+    run.party.map((c) => ({ label: c.isHero ? `主人公（${c.job}）` : c.name, value: c.id, disabled: c.skills.length === 0, note: c.skills.length === 0 ? '技がない' : `技 ${c.skills.length}/${skillSlots(c)}` })),
+  );
+  if (!who) return false;
+  const c = run.party.find((x) => x.id === who)!;
+  const sk = await choose(
+    'どの技を忘れる？',
+    c.skills.map((n) => ({ label: n, value: n, note: skillLine(SKILL_BY_NAME.get(n)!) })),
+    '忘れた技は二度と戻らない。',
+  );
+  if (!sk) return false;
+  const err = forgetSkill(run, who, sk, price);
+  toast(err ?? `「${sk}」を忘れた`);
+  app.save();
+  return !err;
+}
+
+/** 技の枠を増やす人を選ぶ流れ（イベント用）。増やしたら true */
+async function slotFlow(app: App): Promise<boolean> {
+  const run = app.run!;
+  const who = await choose(
+    'だれの技の枠を増やす？',
+    run.party.map((c) => {
+      const max = (c.slotBonus ?? 0) >= BALANCE.maxSlotBonus;
+      return { label: c.isHero ? `主人公（${c.job}）` : c.name, value: c.id, disabled: max, note: max ? 'これ以上は増やせない' : `技の枠 ${skillSlots(c)} → ${skillSlots(c) + 1}` };
+    }),
+  );
+  if (!who) return false;
+  const err = addSkillSlot(run, who);
+  toast(err ?? '技の枠が1つ増えた');
+  app.save();
+  return !err;
+}
+
 /** ショップのサービス：技を忘れさせる・本の取り寄せ */
 function shopServices(app: App, rerender: () => void) {
   const run = app.run!;
   const shop = run.shop!;
   const forget = async () => {
-    const who = await choose(
-      'だれの技を忘れさせる？',
-      run.party.map((c) => ({ label: c.isHero ? `主人公（${c.job}）` : c.name, value: c.id, disabled: c.skills.length === 0, note: c.skills.length === 0 ? '技がない' : undefined })),
-    );
-    if (!who) return;
-    const c = run.party.find((x) => x.id === who)!;
-    const sk = await choose(
-      'どの技を忘れる？',
-      c.skills.map((n) => ({ label: n, value: n, note: skillLine(SKILL_BY_NAME.get(n)!) })),
-      '忘れた技は二度と戻らない。',
-    );
-    if (!sk) return;
-    const err = forgetSkill(run, who, sk);
-    toast(err ?? `「${sk}」を忘れた`);
-    app.save();
-    rerender();
+    if (await forgetFlow(app)) rerender();
   };
   const order = async () => {
     const jobs = [...new Set(run.party.map((c) => c.job))];
@@ -399,7 +428,7 @@ export function restScreen(app: App) {
   const run = app.run!;
   const root = h('div', { class: 'screen' });
   let done: string | null = null;
-  const pct = Math.round(BALANCE.restRatio * 100);
+  const pct = Math.round(BALANCE.restRatio * rules(run).restMul * 100);
   const doTrain = async () => {
     const who = await choose(
       'だれを鍛える？',
@@ -427,6 +456,8 @@ export function restScreen(app: App) {
         { class: 'win grow' },
         h('div', { class: 'win-title' }, '休憩所'),
         h('p', { class: 'story' }, done ?? '消えかけた焚き火が、闇の中でかすかに揺れている。休むか、鍛えるか。どちらか一つだけ。'),
+        // 技の整理は、休む・鍛えるとは別に何度でもできる
+        h('button', { class: 'btn small', style: 'margin-top:8px', onclick: async () => (await forgetFlow(app, 0)) && render() }, '技を整理する（無料で技を忘れる）'),
       ),
       done
         ? h(
@@ -476,7 +507,9 @@ export function eventScreen(app: App, screen: { pick: EventPick }) {
   const ev = pick.event;
   const actors = pick.actorIds.map((id) => run.party.find((c) => c.id === id)!).filter(Boolean);
   const root = h('div', { class: 'screen' });
-  const render = (outcome?: { text: string; battle?: string[] }) =>
+  // 結果のあとの「だれかを選ぶ」（技を忘れる・枠を増やす）を済ませたか
+  let picked = false;
+  const render = (outcome?: EventOutcome) =>
     root.replaceChildren(
       topBar(app, () => render(outcome)),
       partyGrid(run),
@@ -510,6 +543,22 @@ export function eventScreen(app: App, screen: { pick: EventPick }) {
               }),
             ),
       ),
+      outcome?.pick && !picked
+        ? h(
+            'button',
+            {
+              class: 'btn wide',
+              onclick: async () => {
+                const ok = outcome.pick === 'forget' ? await forgetFlow(app, 0) : await slotFlow(app);
+                if (ok) {
+                  picked = true;
+                  render(outcome);
+                }
+              },
+            },
+            outcome.pick === 'forget' ? '忘れる技を選ぶ' : '技の枠を増やす人を選ぶ',
+          )
+        : '',
       outcome
         ? h(
             'button',

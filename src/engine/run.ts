@@ -404,12 +404,22 @@ export function buy(run: RunState, index: number): string | null {
 /** 技を忘れさせる値段 */
 export const forgetPrice = (run: RunState) => 15 * run.floor;
 
-export function forgetSkill(run: RunState, charId: string, skill: string): string | null {
+/** 技を忘れる。price を省くとショップの値段（休憩所・イベントでは 0） */
+export function forgetSkill(run: RunState, charId: string, skill: string, price = forgetPrice(run)): string | null {
   const c = run.party.find((x) => x.id === charId);
   if (!c || !c.skills.includes(skill)) return 'その技は覚えていません';
-  if (run.gold < forgetPrice(run)) return 'お金が足りません';
-  run.gold -= forgetPrice(run);
+  if (run.gold < price) return 'お金が足りません';
+  run.gold -= price;
   c.skills = c.skills.filter((x) => x !== skill);
+  return null;
+}
+
+/** 技の枠を1つ増やす（上限まで） */
+export function addSkillSlot(run: RunState, charId: string): string | null {
+  const c = run.party.find((x) => x.id === charId);
+  if (!c) return 'キャラクターがいません';
+  if ((c.slotBonus ?? 0) >= BALANCE.maxSlotBonus) return 'これ以上は増やせない';
+  c.slotBonus = (c.slotBonus ?? 0) + 1;
   return null;
 }
 
@@ -444,7 +454,10 @@ export function sell(run: RunState, index: number): number {
 // ───────────────────────── 本・装備 ─────────────────────────
 
 /** 本を読んで技を覚える。枠がいっぱいなら forget の技を忘れる（戻らない） */
-export function learnBook(run: RunState, invIndex: number, charId: string, forget?: string): string | null {
+/** 技の枠がいっぱいのときの案内 */
+export const SLOTS_FULL = '技の枠がいっぱい。ショップ・休憩所・一部のイベントで技を忘れさせてから読もう';
+
+export function learnBook(run: RunState, invIndex: number, charId: string): string | null {
   const e = run.inventory[invIndex];
   if (!e || e.kind !== 'book') return '本ではありません';
   const c = run.party.find((x) => x.id === charId);
@@ -452,10 +465,7 @@ export function learnBook(run: RunState, invIndex: number, charId: string, forge
   const s = SKILL_BY_NAME.get(e.name)!;
   if (s.job !== c.job) return `${s.job}の本です`;
   if (c.skills.includes(s.name)) return 'すでに覚えています';
-  if (c.skills.length >= skillSlots(c)) {
-    if (!forget || !c.skills.includes(forget)) return 'スキル枠がいっぱいです。忘れる技を選んでください';
-    c.skills = c.skills.filter((x) => x !== forget);
-  }
+  if (c.skills.length >= skillSlots(c)) return SLOTS_FULL;
   c.skills.push(s.name);
   removeFromInventory(run, invIndex);
   return null;

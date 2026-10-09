@@ -19,6 +19,8 @@ export interface EventOutcome {
   text: string;
   /** 戦闘になる場合の敵 */
   battle?: string[];
+  /** 結果のあとに、だれかを選んでもらう（forget＝技を1つ無料で忘れる／slot＝技の枠+1） */
+  pick?: 'forget' | 'slot';
 }
 
 type Text = string | ((c: EventCtx) => string);

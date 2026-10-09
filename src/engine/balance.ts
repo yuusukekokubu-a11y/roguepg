@@ -98,8 +98,10 @@ export const BALANCE = {
 
   /** 経験値： 次のレベルまで */
   expToNext: (level: number) => Math.round(10 * Math.pow(level, 1.35)),
-  /** スキル枠：レベルごとの枠数 */
-  skillSlots: (level: number) => Math.min(6, 2 + (level >= 3 ? 1 : 0) + (level >= 5 ? 1 : 0) + (level >= 8 ? 1 : 0) + (level >= 12 ? 1 : 0)),
+  /** 技の枠：全員この数で固定（レベルでは増えない） */
+  skillSlots: 4,
+  /** イベントなどで増やせる技の枠の上限（1人あたり） */
+  maxSlotBonus: 2,
   maxLevel: 30,
 
   /** 持ち物（アイテム・本・装備をまとめて数える） */

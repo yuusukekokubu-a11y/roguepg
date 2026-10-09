@@ -116,4 +116,31 @@ export const GENERAL_EVENTS: GameEvent[] = [
       { label: 'やめておく', resolve: () => ({ text: '「つれないねぇ」' }) },
     ],
   },
+  {
+    id: 'oblivion',
+    kind: 'general',
+    title: '忘却の泉',
+    icon: '🌫',
+    text: '霧の中に、底の見えない泉がある。覗きこむと、覚えた技が水面に浮かんでは消えていく。',
+    choices: [
+      { label: '水面に技を映す（だれかの技を1つ、無料で忘れる）', resolve: () => ({ text: '水面がゆらぎ、手放す技を待っている。', pick: 'forget' }) },
+      { label: '水を飲む（全員のMPを30%回復）', resolve: ({ run }) => ({ text: join('冷たい水で頭が冴えた。', mpAll(run, 0.3)) }) },
+      { label: '立ち去る', resolve: () => ({ text: '霧の泉をあとにした。' }) },
+    ],
+  },
+  {
+    id: 'archive',
+    kind: 'general',
+    floors: [2, 3, 4],
+    title: '古の書庫',
+    icon: '📚',
+    text: '崩れた塔の奥に、埃をかぶった書庫が残っていた。読み解けば、より多くの技を身につけられそうだ。ただし、ここの空気は体を蝕む。',
+    choices: [
+      {
+        label: '書を読み解く（1人の技の枠+1。全員のHP-15%）',
+        resolve: ({ run }) => ({ text: join('夜を徹して古い書を読み解いた。', hurtAll(run, 0.15)), pick: 'slot' }),
+      },
+      { label: '立ち去る', resolve: () => ({ text: '書庫には手をつけずに立ち去った。' }) },
+    ],
+  },
 ];

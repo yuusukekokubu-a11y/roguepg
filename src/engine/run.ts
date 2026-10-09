@@ -5,6 +5,7 @@ import { ACCESSORIES, ACCESSORY_BY_NAME, ARCHETYPES, ITEMS, ITEM_BY_NAME, JOBS, 
 import { BLESSINGS, BLESSING_BY_NAME } from '../data/blessings';
 import { ENCOUNTERS, ENEMY_BY_NAME } from '../data/enemies';
 import { VARIANTS, VARIANT_CHANCE } from '../data/variants';
+import { REPLACED_BOOKS } from '../data/jobTraits';
 import { EQUIPMENT, type EquipmentDef } from '../data/equipment';
 import { BALANCE } from './balance';
 import { characterMods, characterStats, clampVitals, createCharacter, gainExp, levelUp, skillSlots, type Character } from './character';
@@ -628,12 +629,23 @@ export function saveRun(run: RunState) {
   }
 }
 
+/** 名前が変わった本を、古いセーブの中でも新しい名前に直す */
+function migrateNames(run: RunState) {
+  const rename = (n: string) => REPLACED_BOOKS[n]?.name ?? n;
+  for (const c of [...run.party, ...(run.recruits ?? [])]) c.skills = c.skills.map(rename);
+  for (const e of run.inventory) if (e.kind === 'book') e.name = rename(e.name);
+  for (const g of run.shop?.goods ?? []) if (g.entry.kind === 'book') g.entry.name = rename(g.entry.name);
+  for (const e of run.shop?.orderOptions ?? []) if (e.kind === 'book') e.name = rename(e.name);
+}
+
 export function loadRun(): RunState | null {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const run = JSON.parse(raw) as RunState;
-    return run.version === 1 && !run.result ? run : null;
+    if (run.version !== 1 || run.result) return null;
+    migrateNames(run);
+    return run;
   } catch {
     return null;
   }

@@ -34,3 +34,13 @@ export const EXTRA_BOOKS = [
   { lineage: '技巧系', job: '盗賊', archetype: '強奪型', name: '手当て', rarity: '通常', target: '味方単体', cost: 'MP小', effect: 'HP回復小＋状態異常を治す' },
   { lineage: '技巧系', job: '狩人', archetype: '罠型', name: '薬草の知恵', rarity: '通常', target: '味方単体', cost: 'MP小', effect: 'HP回復中' },
 ];
+
+/**
+ * 企画書の本を置き換えたもの（旧名 → 新しい本）。
+ * 連続魔・三重詠唱は「その番にもう一度行動できる」技だったが、MP消費0のアクセサリー（無限の杯）と組むと
+ * 毎ターン回復しながら攻撃し続けられる（ループする）ため、行動回数を増やさない「残響」に置き換えた。
+ */
+export const REPLACED_BOOKS: Record<string, { name: string; cost: string; effect: string }> = {
+  連続魔: { name: '残響詠唱', cost: 'MP小', effect: '残響：次の魔法がもう1回発動する（MPは1回分）' },
+  三重詠唱: { name: '残響の極み', cost: 'MP中', effect: '残響：次の魔法がさらに2回発動する（MPは1回分）' },
+};

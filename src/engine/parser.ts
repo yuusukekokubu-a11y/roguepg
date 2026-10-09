@@ -224,6 +224,8 @@ export function parseAction(text: string): ParsedAction {
     if (next[3]) effects.push(...parseEffects(next[3], { turns: undefined }));
     return { effects, conditions: [] };
   }
+  const echo = /^残響：次の魔法が(?:もう|さらに)(\d)回発動する/.exec(text);
+  if (echo) return { effects: [{ kind: 'echo', count: Number(echo[1]) }], conditions: [] };
   const multi = /^連続行動：このターン魔法を(\d)回$/.exec(text);
   if (multi) return { effects: [{ kind: 'multiCast', count: Number(multi[1]) }], conditions: [] };
 

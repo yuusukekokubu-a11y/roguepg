@@ -79,6 +79,7 @@ export type Effect =
   | { kind: 'charge'; mul: number; crit?: boolean; scope: 'attack' | 'magic' | 'any' } // 溜め：次の攻撃を強化
   | { kind: 'delayed'; effects: Effect[] } // 溜め：次のターンに発動
   | { kind: 'multiCast'; count: number } // 連続行動
+  | { kind: 'echo'; count: number } // 残響：次の魔法が count 回追加で発動する（MPは1回分）
   | { kind: 'haste'; amount: number } // 行動順（+で早める、-で遅らせる）
   | { kind: 'cover'; turns: number } // かばう
   | { kind: 'taunt'; turns: number } // 挑発

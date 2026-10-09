@@ -58,6 +58,8 @@ export interface Unit {
   status: StatusState;
   lingers: Linger[];
   charge?: { mul: number; crit: boolean; scope: 'attack' | 'magic' | 'any' };
+  /** 残響：次の魔法が追加で発動する回数 */
+  echo?: number;
   delayed?: { name: string; effects: Effect[]; conditions: Condition[]; target: TargetKind; targetUid?: number; powerMul: number };
   wait: number;
   mods: AccessoryMod[];
@@ -124,6 +126,8 @@ interface ActionSpec {
   isSkill?: boolean;
   powerMul?: number;
   counterStatus?: StatusId;
+  /** 残響で追加発動するとき：MPなどを払わない */
+  noCost?: boolean;
 }
 
 interface ActionCtx {
@@ -440,7 +444,9 @@ export class Battle {
       case 'skill': {
         const s = SKILL_BY_NAME.get(cmd.skill)!;
         this.push(`${u.name} の ${s.name}！`, 'turn', { actor: u.uid, action: s.name });
-        this.execute(u, skillSpec(s), cmd.target);
+        const spec = skillSpec(s);
+        this.execute(u, spec, cmd.target);
+        this.echoCast(u, spec, cmd.target);
         break;
       }
       case 'item': {
@@ -575,7 +581,7 @@ export class Battle {
 
   private pay(u: Unit, spec: ActionSpec) {
     const cost = spec.cost;
-    if (!cost) return;
+    if (!cost || spec.noCost) return;
     if (cost.kind === 'hp') {
       const c = this.hpCost(u, cost);
       u.hp -= c;
@@ -842,6 +848,22 @@ export class Battle {
         const t = ok.find((x) => x.uid === targetUid) ?? (ok.length > 0 ? ok[0] : undefined);
         return t ? [t] : [];
       }
+    }
+  }
+
+  /** 残響：魔法のあと、同じ魔法を MP なしで追加発動する */
+  private echoCast(u: Unit, spec: ActionSpec, targetUid?: number) {
+    if (!u.echo || !this.isMagicAction(spec) || spec.effects.some((e) => e.kind === 'delayed' || e.kind === 'echo')) return;
+    const n = u.echo;
+    u.echo = undefined;
+    for (let i = 0; i < n; i++) {
+      if (u.hp <= 0 || this.alive(this.opposite(u.side)).length === 0) return;
+      // 狙っていた相手が倒れていたら、生きている相手に向け直す
+      let t = targetUid;
+      const cur = this.units.find((x) => x.uid === t);
+      if (t !== undefined && (!cur || cur.hp <= 0)) t = this.alive(this.opposite(u.side))[0]?.uid;
+      this.push(`残響！ ${spec.name} がもう一度発動する！`, 'turn', { actor: u.uid, action: `${spec.name}（残響）` });
+      this.execute(u, { ...spec, noCost: true }, t);
     }
   }
 
@@ -1387,6 +1409,11 @@ export class Battle {
       case 'charge':
         t.charge = { mul: e.mul, crit: !!e.crit, scope: e.scope };
         this.push(`${t.name} は力を溜めた！`, 'info');
+        return;
+      case 'echo':
+        // 重ねがけは「追加2回」まで（溜めすぎて一撃が極端に大きくならないように）
+        u.echo = Math.min(2, (u.echo ?? 0) + e.count);
+        this.push(`${u.name} の詠唱が響いている……（次の魔法が${u.echo + 1}回発動）`, 'info');
         return;
       case 'multiCast':
         u.extraActions = e.count;

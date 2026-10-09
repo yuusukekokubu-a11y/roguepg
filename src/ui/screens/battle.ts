@@ -421,6 +421,7 @@ function statusBadges(u: Unit): HTMLElement[] {
     out.push(h('span', { class: `badge ${l.sourceSide === u.side ? '' : 'bad'}` }, LINGER_LABEL[l.kind]));
   }
   if (u.charge) out.push(h('span', { class: 'badge' }, '溜め'));
+  if (u.echo) out.push(h('span', { class: 'badge' }, `残響×${u.echo + 1}`));
   if (u.delayed) out.push(h('span', { class: 'badge charge' }, '溜め中'));
   return out;
 }

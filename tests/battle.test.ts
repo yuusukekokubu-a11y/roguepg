@@ -173,3 +173,42 @@ describe('戦闘', () => {
     expect(dodged || logs.includes('溶岩スライム の反撃！')).toBe(true);
   });
 });
+
+describe('残響（連続魔の置き換え）', () => {
+  it('残響のあとの魔法は、MP1回分で2回発動する。行動回数は増えない', () => {
+    const c = hero('赤魔道士', ['残響詠唱', '小火炎'], 10);
+    c.mp = 99;
+    const b = new Battle([c], ['森の大熊'], 'normal', hooks());
+    b.units.find((u) => u.side === 'enemy')!.hp = 9999;
+    expect(untilInput(b)).toBe('input');
+    b.submit({ type: 'skill', skill: '残響詠唱' });
+    // 連続行動にはならない（すぐに番が終わる）
+    expect(b.current === null || b.phase !== 'input' || b.current.char !== c).toBe(true);
+    expect(untilInput(b)).toBe('input');
+    const me = b.units.find((u) => u.char === c)!;
+    const mpBefore = me.mp;
+    const foe = b.units.find((u) => u.side === 'enemy')!;
+    b.submit({ type: 'skill', skill: '小火炎', target: foe.uid });
+    expect(b.log.filter((l) => l.text.startsWith('残響！')).length).toBe(1);
+    expect(mpBefore - me.mp).toBeLessThanOrEqual(4 + 1);
+    expect(me.echo).toBeUndefined();
+  });
+
+  it('無限の杯を着けても、残響では1回の番に2回行動できない', () => {
+    const c = hero('赤魔道士', ['残響詠唱', '小火炎'], 10);
+    c.accessories = ['無限の杯', null];
+    const b = new Battle([c], ['森の大熊'], 'normal', hooks());
+    b.units.find((u) => u.side === 'enemy')!.hp = 9999;
+    untilInput(b);
+    b.submit({ type: 'skill', skill: '残響詠唱' });
+    const me = b.units.find((u) => u.char === c)!;
+    expect(me.extraActions).toBe(0);
+  });
+
+  it('古いセーブの「連続魔」は「残響詠唱」に読み替える', async () => {
+    const { SKILL_BY_NAME } = await import('../src/data');
+    expect(SKILL_BY_NAME.has('連続魔')).toBe(false);
+    expect(SKILL_BY_NAME.get('残響詠唱')?.effects[0].kind).toBe('echo');
+    expect(SKILL_BY_NAME.get('残響の極み')?.rare).toBe(true);
+  });
+});

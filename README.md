@@ -23,6 +23,17 @@ npm run dev      # 開発用サーバーを起動
 | `npm test` | 自動テストを実行（データの読み取り・戦闘ルール・バランス） |
 | `npm run import-data` | 企画書（Excel）からゲームデータを作り直す |
 
+## 公開（GitHub Pages）
+
+GitHub Pages（GitHub が無料で Web サイトを置いてくれる仕組み）で公開できます。URL は `https://yuusukekokubu-a11y.github.io/roguepg/` です。
+
+- 既定のブランチに変更を push するたびに、GitHub Actions（GitHub 上で自動で作業を動かす仕組み）がゲームを作り直して公開します（`.github/workflows/pages.yml`）
+- 最初の1回だけ、GitHub のリポジトリ画面で次の設定が必要です
+  1. Settings → General のいちばん下「Danger Zone」→「Change visibility」でリポジトリを Public（公開）にする（無料プランでは Pages に必要。プログラム・企画書・履歴も誰でも見られるようになる）
+  2. Settings → Pages の「Build and deployment」→「Source」を「GitHub Actions」にする
+  3. Actions タブ →「GitHub Pages に公開」→「Run workflow」で公開を実行する
+- セーブは遊ぶ人それぞれのブラウザに保存される（ほかの人とは混ざらない）
+
 ## 使っている技術（用語の説明つき）
 
 - **TypeScript**：JavaScript に「型」（データの形のチェック）を足した言語。書きまちがいを実行前に見つけてくれる

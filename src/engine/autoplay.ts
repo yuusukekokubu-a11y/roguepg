@@ -23,9 +23,12 @@ import {
   buy,
   recruit,
   rest,
+  train,
   starterBooks,
   treasure,
   isPartyDead,
+  type InvEntry,
+  type RewardPick,
   type RunState,
 } from './run';
 import type { BattleKind } from './battle';
@@ -74,8 +77,8 @@ export function chooseCommand(b: Battle, u: Unit, rng: Rng, items: string[] = []
   return { type: 'attack', target: target('enemy', [])! };
 }
 
-export function runBattle(run: RunState, enemies: string[], kind: BattleKind, rng: Rng): Battle {
-  const b = new Battle(run.party, enemies, kind, battleHooks(run, rng));
+export function runBattle(run: RunState, enemies: string[], kind: BattleKind, rng: Rng, variants: (string | null)[] = []): Battle {
+  const b = new Battle(run.party, enemies, kind, battleHooks(run, rng), variants);
   let guard = 0;
   while (guard++ < 2000) {
     const ph = b.advance();
@@ -113,6 +116,19 @@ function manage(run: RunState) {
   }
 }
 
+/** 報酬の選択肢から、それなりに良さそうな物を1つ取る */
+function takeBest(run: RunState, pick: RewardPick) {
+  const jobs = run.party.map((c) => c.job);
+  const score = (e: InvEntry) => {
+    if (e.kind === 'book') return jobs.includes(SKILL_BY_NAME.get(e.name)!.job) ? 3 : 0;
+    if (e.kind === 'acc') return 2;
+    if (e.kind === 'equip') return 1.5;
+    return 1;
+  };
+  const best = [...pick.options].sort((a, b) => score(b) - score(a))[0];
+  if (best) addToInventory(run, best);
+}
+
 export interface SimResult {
   job: string;
   cleared: boolean;
@@ -148,11 +164,11 @@ export function playRun(run: RunState, rng: Rng, lastFloor = 99): SimResult {
       case 'elite':
       case 'boss': {
         const enc = encounterFor(run, node);
-        const b = runBattle(run, enc.enemies, enc.kind, rng);
+        const b = runBattle(run, enc.enemies, enc.kind, rng, enc.variants);
         const r = b.finish();
         if (b.phase === 'lost' || isPartyDead(run)) return dead();
         const rw = battleRewards(run, enc.kind, r.exp, r.gold);
-        for (const d of rw.drops) addToInventory(run, d);
+        for (const p of rw.picks) takeBest(run, p);
         if (node.type === 'boss') {
           bossCleared(run);
           if (run.blessingChoices) chooseBlessing(run, rng.pick(run.blessingChoices));
@@ -160,11 +176,17 @@ export function playRun(run: RunState, rng: Rng, lastFloor = 99): SimResult {
         }
         break;
       }
-      case 'rest':
-        rest(run);
+      case 'rest': {
+        // 元気なら鍛える（いちばん能力の高い攻撃手段を伸ばす）、弱っていたら休む
+        if (hpRatio > 0.8) {
+          const c = rng.pick(run.party.filter((x) => x.hp > 0));
+          const st = characterStats(c);
+          train(run, c.id, st.mag > st.atk ? 'mag' : 'atk');
+        } else rest(run);
         break;
+      }
       case 'treasure':
-        for (const d of treasure(run).drops) addToInventory(run, d);
+        for (const p of treasure(run).picks) takeBest(run, p);
         break;
       case 'shop': {
         const shop = openShop(run);

@@ -6,6 +6,7 @@
 import { ITEMS, JOB_BY_NAME, SKILL_BY_NAME, ITEM_BY_NAME, type SkillDef } from '../data';
 import type { AccessoryMod, AccCondition } from '../data/accessoryMods';
 import { ENEMY_BY_NAME, type EnemyAction, type EnemyDef } from '../data/enemies';
+import { VARIANT_BY_ID, VARIANT_REWARD, type VariantDef } from '../data/variants';
 import { BALANCE } from './balance';
 import { accessoryMods, characterStats, type Character, type Stats } from './character';
 import { parseAction } from './parser';
@@ -68,6 +69,10 @@ export interface Unit {
   endureUsed: boolean;
   enrageUsed: boolean;
   patternIndex: number;
+  /** 変異個体の性質 */
+  variant?: VariantDef;
+  /** 敵の次の行動（予告） */
+  intent?: { action: EnemyAction; effects: Effect[]; conditions: Condition[]; targetUid?: number };
   /** HPが半分以下になって行動が変わった（第2段階） */
   phase2: boolean;
   stolenGold: number;
@@ -145,25 +150,29 @@ export class Battle {
     enemyNames: string[],
     readonly kind: BattleKind,
     readonly hooks: BattleHooks,
+    /** 変異個体（enemyNames と同じ並び。null は普通の個体） */
+    variants: (string | null)[] = [],
   ) {
     this.rng = hooks.rng;
     for (const c of party) this.units.push(this.makePlayerUnit(c));
     const counts = new Map<string, number>();
     enemyNames.forEach((n) => counts.set(n, (counts.get(n) ?? 0) + 1));
     const seen = new Map<string, number>();
-    for (const n of enemyNames) {
+    enemyNames.forEach((n, i) => {
       const def = ENEMY_BY_NAME.get(n);
       if (!def) throw new Error(`敵「${n}」がいません`);
       const idx = (seen.get(n) ?? 0) + 1;
       seen.set(n, idx);
       const label = counts.get(n)! > 1 ? `${n}${'ABCDEFG'[idx - 1]}` : n;
-      this.units.push(this.makeEnemyUnit(def, label));
-    }
+      const v = variants[i] ? VARIANT_BY_ID.get(variants[i]!) : undefined;
+      this.units.push(this.makeEnemyUnit(def, label, v));
+    });
     for (const u of this.units) {
       u.wait = (BALANCE.timeBase / this.spd(u)) * (0.3 + this.rng.next() * 0.7);
       if (u.mods.some((m) => m.battleStartFastest)) u.wait = 0;
       if (u.mods.some((m) => m.alwaysTaunt)) u.lingers.push({ kind: 'taunt', turns: 99, sourceSide: u.side, permanent: true });
       for (const m of u.mods) if (m.alwaysStatus === 'poison') u.status.poison = { stacks: 1, turns: 99, mul: 1, weak: false };
+      if (u.side === 'enemy') this.planIntent(u);
       const ec = u.enemy?.counter;
       if (ec) u.lingers.push({ kind: 'counter', turns: 99, sourceSide: u.side, permanent: true, physicalOnly: true, status: ec.status });
     }
@@ -201,17 +210,21 @@ export class Battle {
     };
   }
 
-  private makeEnemyUnit(def: EnemyDef, label: string): Unit {
+  private makeEnemyUnit(def: EnemyDef, label: string, variant?: VariantDef): Unit {
+    const base: Stats = { hp: def.hp, mp: 99, atk: def.atk, def: def.def, mag: def.mag, spr: def.spr, spd: def.spd };
+    for (const [k, v] of Object.entries(variant?.stats ?? {})) base[k as Stat] = Math.max(1, Math.round(base[k as Stat] * v));
     return {
       ...this.blankUnit(),
       side: 'enemy',
-      name: label,
+      name: variant ? `${variant.prefix}${label}` : label,
       icon: def.icon,
       enemy: def,
-      base: { hp: def.hp, mp: 99, atk: def.atk, def: def.def, mag: def.mag, spr: def.spr, spd: def.spd },
-      hp: def.hp,
+      variant,
+      base,
+      hp: base.hp,
       mp: 99,
       row: def.back ? 'back' : 'front',
+      mods: variant?.mod ? [variant.mod] : [],
     };
   }
 
@@ -673,31 +686,74 @@ export class Battle {
 
   // ───────────────────────── 敵の行動 ─────────────────────────
 
-  private enemyAct(u: Unit) {
-    const def = u.enemy!;
+  /** 敵の次の行動を決めておく（画面に予告として出す） */
+  private planIntent(u: Unit) {
+    const def = u.enemy;
+    if (!def || u.hp <= 0) return;
     let action: EnemyAction | undefined;
     if (def.enrage && !u.enrageUsed && u.hp <= this.maxHp(u) / 2) {
-      u.enrageUsed = true;
       action = def.actions.find((a) => a.name === def.enrage);
     } else if (u.phase2 && def.halfHp?.pattern) {
       const p = def.halfHp.pattern;
-      const name = p[u.patternIndex % p.length];
-      u.patternIndex++;
-      action = def.actions.find((a) => a.name === name);
+      action = def.actions.find((a) => a.name === p[u.patternIndex % p.length]);
     } else if (def.pattern) {
-      const name = def.pattern[u.patternIndex % def.pattern.length];
-      u.patternIndex++;
-      action = def.actions.find((a) => a.name === name);
+      action = def.actions.find((a) => a.name === def.pattern![u.patternIndex % def.pattern!.length]);
     } else {
       action = this.rng.weighted(def.actions.filter((a) => (a.weight ?? 1) > 0).map((a) => [a, a.weight ?? 1] as [EnemyAction, number]));
     }
     if (!action) throw new Error(`${def.name} の行動が見つかりません`);
     const parsed = parseAction(action.effect);
+    let targetUid: number | undefined;
+    if (action.target === 'enemy') targetUid = this.enemyPickTarget(u)?.uid;
+    if (action.target === 'ally') targetUid = this.enemyPickAlly(u, parsed.effects)?.uid;
+    u.intent = { action, effects: parsed.effects, conditions: parsed.conditions, targetUid };
+  }
+
+  private enemyAct(u: Unit) {
+    const def = u.enemy!;
+    // 予告していた行動より優先：HPが半分を切って怒る
+    if (def.enrage && !u.enrageUsed && u.hp <= this.maxHp(u) / 2 && u.intent?.action.name !== def.enrage) this.planIntent(u);
+    if (!u.intent) this.planIntent(u);
+    const intent = u.intent!;
+    u.intent = undefined;
+    const { action } = intent;
+    if (action.name === def.enrage) u.enrageUsed = true;
+    else if ((u.phase2 && def.halfHp?.pattern) || def.pattern) u.patternIndex++;
     this.push(`${u.name} の ${action.name}！`, 'turn');
-    let target: number | undefined;
-    if (action.target === 'enemy') target = this.enemyPickTarget(u)?.uid;
-    if (action.target === 'ally') target = this.enemyPickAlly(u, parsed.effects)?.uid;
-    this.execute(u, { name: action.name, effects: parsed.effects, conditions: parsed.conditions, target: action.target }, target);
+    let target = intent.targetUid;
+    // 狙っていた相手が倒れた・挑発された、などのときは狙い直す
+    if (action.target === 'enemy') {
+      const ok = this.selectableTargets(u, 'enemy', intent.effects);
+      if (!ok.some((x) => x.uid === target)) target = this.enemyPickTarget(u)?.uid;
+    }
+    if (action.target === 'ally' && !this.alive(u.side).some((x) => x.uid === target)) target = this.enemyPickAlly(u, intent.effects)?.uid;
+    this.execute(u, { name: action.name, effects: intent.effects, conditions: intent.conditions, target: action.target }, target);
+    this.planIntent(u);
+  }
+
+  /** 画面表示用：敵の予告の説明 */
+  describeIntent(u: Unit): { label: string; kind: 'attack' | 'aoe' | 'charge' | 'buff' | 'debuff' | 'heal' | 'guard' | 'special' } | null {
+    const it = u.intent;
+    if (!it || u.hp <= 0) return null;
+    const effects = it.effects;
+    const t = this.units.find((x) => x.uid === it.targetUid);
+    const tname = t ? (t.char?.isHero ? '主人公' : t.name) : '';
+    const dmg = effects.find((e) => e.kind === 'damage');
+    if (effects.some((e) => e.kind === 'delayed')) return { label: `溜め：${it.action.name}`, kind: 'charge' };
+    if (dmg && dmg.kind === 'damage') {
+      const hits = dmg.hits[1] > 1 ? `×${dmg.hits[0] === dmg.hits[1] ? dmg.hits[0] : `${dmg.hits[0]}〜${dmg.hits[1]}`}` : '';
+      if (it.action.target === 'enemyAll') return { label: `全体攻撃${hits}`, kind: 'aoe' };
+      if (it.action.target === 'enemyFront') return { label: `前列攻撃${hits}`, kind: 'aoe' };
+      if (it.action.target === 'random') return { label: `乱れ攻撃${hits}`, kind: 'attack' };
+      return { label: `攻撃${hits}→${tname}`, kind: 'attack' };
+    }
+    if (effects.some((e) => e.kind === 'heal')) return { label: '回復', kind: 'heal' };
+    if (effects.some((e) => e.kind === 'dispel')) return { label: '強化を解く', kind: 'debuff' };
+    if (effects.some((e) => e.kind === 'status' || (e.kind === 'buff' && e.amount < 0) || e.kind === 'tick'))
+      return { label: it.action.target === 'enemyAll' ? '全体に妨害' : `妨害→${tname}`, kind: 'debuff' };
+    if (effects.some((e) => e.kind === 'buff' && e.amount > 0)) return { label: it.action.target === 'allyAll' ? '仲間を強化' : '強化', kind: 'buff' };
+    if (effects.some((e) => e.kind === 'taunt' || e.kind === 'counter' || e.kind === 'cover' || e.kind === 'guard')) return { label: '守り', kind: 'guard' };
+    return { label: it.action.name, kind: 'special' };
   }
 
   /** 敵が味方（敵側）を選ぶ：かばうなら自分以外、それ以外はHPの割合が一番低い仲間 */
@@ -716,6 +772,7 @@ export class Battle {
     const taunters = foes.filter((f) => this.hasLinger(f, 'taunt'));
     if (taunters.length > 0) return this.rng.pick(taunters);
     if (foes.length === 0) return undefined;
+    if (u.enemy?.targetLowest) return [...foes].sort((a, b) => a.hp / this.maxHp(a) - b.hp / this.maxHp(b))[0];
     if (u.enemy?.targetFront) {
       const front = foes.filter((f) => f.row === 'front');
       if (front.length > 0) return this.rng.pick(front);
@@ -1110,12 +1167,15 @@ export class Battle {
 
   /** HPが半分以下になったら第2段階へ */
   private checkHalfHp(t: Unit) {
+    const def = t.enemy;
+    if (def?.enrage && !t.enrageUsed && t.hp <= this.maxHp(t) / 2 && t.intent?.action.name !== def.enrage) this.planIntent(t);
     const half = t.enemy?.halfHp;
     if (!half || t.phase2 || t.hp > this.maxHp(t) / 2) return;
     t.phase2 = true;
     t.patternIndex = 0;
     if (half.immuneAll) t.status = {};
     this.push(half.text, 'system');
+    this.planIntent(t);
   }
 
   private onDeath(t: Unit, from: Unit | null) {
@@ -1414,8 +1474,9 @@ export class Battle {
       if (u.char && u.char.hp <= 0 && ratio > 0) u.char.hp = Math.max(1, Math.round(characterStats(u.char).hp * ratio));
     }
     const defeated = this.units.filter((u) => u.side === 'enemy');
-    const exp = Math.round(defeated.reduce((a, u) => a + (u.enemy?.exp ?? 0), 0) * this.rewardMul);
-    let gold = defeated.reduce((a, u) => a + (u.enemy?.gold ?? 0), 0) * this.rewardMul;
+    const vm = (u: Unit) => (u.variant ? VARIANT_REWARD : 1);
+    const exp = Math.round(defeated.reduce((a, u) => a + (u.enemy?.exp ?? 0) * vm(u), 0) * this.rewardMul);
+    let gold = defeated.reduce((a, u) => a + (u.enemy?.gold ?? 0) * vm(u), 0) * this.rewardMul;
     const goldMul = this.units.filter((u) => u.side === 'player').reduce((a, u) => a * u.mods.reduce((b, m) => b * (m.goldMul ?? 1), 1), 1);
     gold = Math.round(gold * goldMul);
     return { exp, gold };

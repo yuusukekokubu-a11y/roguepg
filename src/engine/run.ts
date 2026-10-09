@@ -3,13 +3,15 @@
 
 import { ACCESSORIES, ACCESSORY_BY_NAME, ARCHETYPES, ITEMS, ITEM_BY_NAME, JOBS, JOB_BY_NAME, SKILLS, SKILL_BY_NAME } from '../data';
 import { BLESSINGS, BLESSING_BY_NAME } from '../data/blessings';
-import { ENCOUNTERS } from '../data/enemies';
+import { ENCOUNTERS, ENEMY_BY_NAME } from '../data/enemies';
+import { VARIANTS, VARIANT_CHANCE } from '../data/variants';
 import { EQUIPMENT, type EquipmentDef } from '../data/equipment';
 import { BALANCE } from './balance';
 import { accessoryMods, characterStats, clampVitals, createCharacter, gainExp, levelUp, skillSlots, type Character } from './character';
 import { generateMap, nextChoices, findNode, type FloorMap, type MapNode } from './map';
 import { Rng } from './rng';
 import type { BattleHooks, BattleKind } from './battle';
+import type { Stat } from './types';
 
 export type InvKind = 'item' | 'book' | 'equip' | 'acc';
 export interface InvEntry {
@@ -199,26 +201,62 @@ export function moveTo(run: RunState, nodeId: string): MapNode {
   return findNode(run.map, nodeId);
 }
 
-export function encounterFor(run: RunState, node: MapNode): { enemies: string[]; kind: BattleKind } {
+export interface Encounter {
+  enemies: string[];
+  kind: BattleKind;
+  /** 変異個体（enemies と同じ並び。null は普通の個体） */
+  variants: (string | null)[];
+}
+
+export function encounterFor(run: RunState, node: MapNode): Encounter {
   const rng = rngOf(run);
   const table = ENCOUNTERS[run.floor];
   if (!table) throw new Error(`${run.floor}層の敵はまだ作られていません`);
-  if (node.type === 'boss') return { enemies: rng.pick(table.boss), kind: 'boss' };
-  if (node.type === 'elite') return { enemies: rng.pick(table.elite), kind: 'elite' };
-  const early = node.row < Math.floor(run.map.rows / 2) - 1;
-  return { enemies: rng.pick(early ? table.early : table.late), kind: 'normal' };
+  const list = node.type === 'boss' ? table.boss : node.type === 'elite' ? table.elite : node.row < Math.floor(run.map.rows / 2) - 1 ? table.early : table.late;
+  const enemies = rng.pick(list);
+  const kind: BattleKind = node.type === 'boss' ? 'boss' : node.type === 'elite' ? 'elite' : 'normal';
+  // 普通の敵は、ときどき変異個体になる
+  const chance = VARIANT_CHANCE[run.floor] ?? 0;
+  const variants = enemies.map((n) => (ENEMY_BY_NAME.get(n)?.kind === 'normal' && rng.chance(chance) ? rng.pick(VARIANTS).id : null));
+  return { enemies, kind, variants };
 }
 
 // ───────────────────────── 戦闘の報酬 ─────────────────────────
 
+/** 報酬の選択：options から1つ選ぶ（選ばなくてもよい） */
+export interface RewardPick {
+  title: string;
+  options: InvEntry[];
+}
+
 export interface Rewards {
   exp: number;
   gold: number;
-  drops: InvEntry[];
+  picks: RewardPick[];
   levelUps: { name: string; level: number }[];
 }
 
-/** 戦闘後：経験値とお金を渡し、拾える物を抽選する（拾うかどうかは画面で選ぶ） */
+type Kind = InvEntry['kind'];
+
+/** 種類の重みに従って、名前がかぶらない候補を n 個作る */
+function rollOptions(run: RunState, rng: Rng, n: number, weights: [Kind, number][], opts: { rare: number; tier: number; partyRatio?: number }): InvEntry[] {
+  const out: InvEntry[] = [];
+  for (let tries = 0; out.length < n && tries < 50; tries++) {
+    const kind = rng.weighted(weights);
+    const name =
+      kind === 'book'
+        ? rollBook(run, rng, opts.rare, opts.partyRatio ?? 0.6)
+        : kind === 'equip'
+          ? rollEquipment(run, rng, opts.tier)
+          : kind === 'acc'
+            ? rollAccessory(rng, opts.rare)
+            : rollItem(rng, opts.rare);
+    if (!out.some((e) => e.name === name)) out.push({ kind, name });
+  }
+  return out;
+}
+
+/** 戦闘後：経験値とお金を渡し、報酬の選択肢を作る */
 export function battleRewards(run: RunState, kind: BattleKind, exp: number, gold: number): Rewards {
   const rng = rngOf(run);
   run.gold += gold;
@@ -229,26 +267,25 @@ export function battleRewards(run: RunState, kind: BattleKind, exp: number, gold
     const ups = gainExp(c, exp);
     if (ups > 0) levelUps.push({ name: c.name, level: c.level });
   }
-  const bookUp = partyMods(run).some((m) => m.bookDropUp) ? 0.2 : 0;
+  // 目利きの眼鏡：本の候補が1つ増える
+  const bookUp = partyMods(run).some((m) => m.bookDropUp);
   const tier = Math.max(0, run.floor - 1);
-  const drops: InvEntry[] = [];
+  const picks: RewardPick[] = [];
   if (kind === 'normal') {
-    if (rng.chance(0.35)) drops.push({ kind: 'item', name: rollItem(rng, 0.05) });
-    if (rng.chance(0.3 + bookUp)) drops.push({ kind: 'book', name: rollBook(run, rng, BALANCE.rareChance.normal, 0.5) });
-    if (rng.chance(0.12)) drops.push({ kind: 'equip', name: rollEquipment(run, rng, tier) });
-    if (rng.chance(0.06)) drops.push({ kind: 'acc', name: rollAccessory(rng, 0.05) });
+    const options = rollOptions(run, rng, 3, [['book', 45], ['item', 25], ['equip', 20], ['acc', 10]], { rare: BALANCE.rareChance.normal, tier });
+    if (bookUp) options.push(...rollOptions(run, rng, 1, [['book', 1]], { rare: BALANCE.rareChance.normal, tier }));
+    picks.push({ title: '戦利品を1つ選ぶ', options });
   } else if (kind === 'elite') {
-    drops.push({ kind: 'book', name: rollBook(run, rng, BALANCE.rareChance.elite, 0.6) });
-    if (rng.chance(bookUp)) drops.push({ kind: 'book', name: rollBook(run, rng, BALANCE.rareChance.elite, 0.6) });
-    if (rng.chance(0.6)) drops.push({ kind: 'equip', name: rollEquipment(run, rng, tier + 1) });
-    if (rng.chance(0.5)) drops.push({ kind: 'acc', name: rollAccessory(rng, 0.2) });
-    drops.push({ kind: 'item', name: rollItem(rng, 0.2) });
+    picks.push({
+      title: '強敵の戦利品を1つ選ぶ',
+      options: rollOptions(run, rng, bookUp ? 4 : 3, [['book', 50], ['equip', 30], ['item', 20]], { rare: BALANCE.rareChance.elite, tier: tier + 1 }),
+    });
+    picks.push({ title: 'アクセサリーを1つ選ぶ', options: rollOptions(run, rng, 2, [['acc', 1]], { rare: 0.25, tier }) });
   } else {
-    drops.push({ kind: 'book', name: rollBook(run, rng, 0.6, 0.6) });
-    drops.push({ kind: 'acc', name: rollAccessory(rng, 0.35) });
-    drops.push({ kind: 'equip', name: rollEquipment(run, rng, tier + 1) });
+    picks.push({ title: '秘伝の書を1つ選ぶ', options: rollOptions(run, rng, 3, [['book', 1]], { rare: 0.6, tier, partyRatio: 0.8 }) });
+    picks.push({ title: 'アクセサリーを1つ選ぶ', options: rollOptions(run, rng, 3, [['acc', 1]], { rare: 0.35, tier }) });
   }
-  return { exp, gold, drops, levelUps };
+  return { exp, gold, picks, levelUps };
 }
 
 // ───────────────────────── 休憩所・宝箱 ─────────────────────────
@@ -270,20 +307,47 @@ export function fullRecover(run: RunState) {
   }
 }
 
-export function treasure(run: RunState): { gold: number; drops: InvEntry[] } {
+export function treasure(run: RunState): { gold: number; picks: RewardPick[] } {
   const rng = rngOf(run);
-  const gold = rng.int(15, 30);
+  const gold = rng.int(15, 30) * run.floor;
   run.gold += gold;
-  const drops: InvEntry[] = [{ kind: 'item', name: rollItem(rng, 0.15) }];
-  if (rng.chance(0.3)) drops.push({ kind: 'acc', name: rollAccessory(rng, 0.1) });
-  else drops.push({ kind: 'item', name: rollItem(rng, 0.1) });
-  return { gold, drops };
+  const tier = Math.max(0, run.floor - 1);
+  const options = rollOptions(run, rng, 3, [['acc', 40], ['item', 40], ['equip', 20]], { rare: 0.15, tier });
+  return { gold, picks: [{ title: '宝箱の中身を1つ選ぶ', options }] };
+}
+
+// ───────────────────────── 休憩所で鍛える ─────────────────────────
+
+/** 鍛えたときに上がる量（層が深いほど大きい） */
+export function trainOptions(run: RunState): { stat: Stat; amount: number }[] {
+  const n = run.floor;
+  return [
+    { stat: 'atk', amount: n + 1 },
+    { stat: 'def', amount: n + 1 },
+    { stat: 'mag', amount: n + 1 },
+    { stat: 'spr', amount: n + 1 },
+    { stat: 'spd', amount: Math.ceil(n / 2) },
+    { stat: 'hp', amount: n * 3 + 2 },
+  ];
+}
+
+/** 休憩所で鍛える：1人の能力値を永久に上げる */
+export function train(run: RunState, charId: string, stat: Stat) {
+  const c = run.party.find((x) => x.id === charId);
+  const opt = trainOptions(run).find((o) => o.stat === stat);
+  if (!c || !opt) throw new Error('鍛えられません');
+  c.bonus = { ...(c.bonus ?? {}), [stat]: (c.bonus?.[stat] ?? 0) + opt.amount };
+  if (stat === 'hp' && c.hp > 0) c.hp += opt.amount;
 }
 
 // ───────────────────────── ショップ ─────────────────────────
 
 export interface ShopStock {
   nodeId: string;
+  /** 本の取り寄せを使ったか */
+  ordered?: boolean;
+  /** 取り寄せた本（まだ受け取っていないもの） */
+  orderOptions?: InvEntry[];
   goods: { entry: InvEntry; sold: boolean }[];
 }
 
@@ -316,6 +380,39 @@ export function buy(run: RunState, index: number): string | null {
   g.sold = true;
   run.inventory.push(g.entry);
   return null;
+}
+
+/** 技を忘れさせる値段 */
+export const forgetPrice = (run: RunState) => 15 * run.floor;
+
+export function forgetSkill(run: RunState, charId: string, skill: string): string | null {
+  const c = run.party.find((x) => x.id === charId);
+  if (!c || !c.skills.includes(skill)) return 'その技は覚えていません';
+  if (run.gold < forgetPrice(run)) return 'お金が足りません';
+  run.gold -= forgetPrice(run);
+  c.skills = c.skills.filter((x) => x !== skill);
+  return null;
+}
+
+/** 本の取り寄せの値段 */
+export const orderPrice = (run: RunState) => 30 + 20 * run.floor;
+
+/** 本の取り寄せ：職業を指定すると、その職業の本が3冊出る（1店につき1回） */
+export function orderBooks(run: RunState, job: string): InvEntry[] | string {
+  if (!run.shop) return '店がありません';
+  if (run.shop.ordered) return 'この店ではもう取り寄せた';
+  if (run.gold < orderPrice(run)) return 'お金が足りません';
+  const rng = rngOf(run);
+  run.gold -= orderPrice(run);
+  run.shop.ordered = true;
+  const books = rng.sample(
+    SKILLS.filter((s) => s.job === job && !s.rare),
+    3,
+  ).map((s) => ({ kind: 'book' as const, name: s.name }));
+  // たまにレア本が混ざる
+  if (rng.chance(0.2)) books[2] = { kind: 'book', name: rng.pick(SKILLS.filter((s) => s.job === job && s.rare)).name };
+  run.shop.orderOptions = books;
+  return books;
 }
 
 export function sell(run: RunState, index: number): number {

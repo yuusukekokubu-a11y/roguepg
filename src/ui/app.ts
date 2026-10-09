@@ -3,7 +3,7 @@
 import type { RunState } from '../engine/run';
 import { saveRun } from '../engine/run';
 import type { EventPick } from '../engine/events';
-import type { Rewards, InvEntry } from '../engine/run';
+import type { Rewards, RewardPick } from '../engine/run';
 import type { BattleKind } from '../engine/battle';
 
 export type Screen =
@@ -11,9 +11,9 @@ export type Screen =
   | { name: 'jobs' }
   | { name: 'starter'; job: string }
   | { name: 'map' }
-  | { name: 'battle'; enemies: string[]; kind: BattleKind; boss: boolean }
+  | { name: 'battle'; enemies: string[]; kind: BattleKind; boss: boolean; variants?: (string | null)[] }
   | { name: 'reward'; title: string; rewards: Rewards; boss: boolean }
-  | { name: 'loot'; title: string; text: string; drops: InvEntry[] }
+  | { name: 'loot'; title: string; text: string; picks: RewardPick[] }
   | { name: 'shop' }
   | { name: 'rest' }
   | { name: 'event'; pick: EventPick }

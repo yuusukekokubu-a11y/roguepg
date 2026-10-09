@@ -32,9 +32,9 @@ describe('企画書のデータ', () => {
     for (const e of ENEMIES) for (const a of e.actions) expect(() => parseAction(a.effect), `${e.name}:${a.name}`).not.toThrow();
   });
 
-  it('敵36体が企画書の「敵」シートと一致している', () => {
+  it('企画書の「敵」シートの36体がすべている（追加の敵16体も）', () => {
     const KIND: Record<string, string> = { 通常: 'normal', 強敵: 'elite', ボス: 'boss' };
-    expect(ENEMIES).toHaveLength(36);
+    expect(ENEMIES).toHaveLength(52);
     for (const row of enemiesJson) {
       const e = ENEMIES.find((x) => x.name === row.name);
       expect(e, row.name).toBeDefined();

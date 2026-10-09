@@ -19,9 +19,9 @@ type Mode =
 
 const FEATURE = new Map(enemiesJson.map((e) => [e.name, e.feature]));
 
-export function battleScreen(app: App, screen: { enemies: string[]; kind: 'normal' | 'elite' | 'boss'; boss: boolean }) {
+export function battleScreen(app: App, screen: { enemies: string[]; kind: 'normal' | 'elite' | 'boss'; boss: boolean; variants?: (string | null)[] }) {
   const run = app.run!;
-  const battle = new Battle(run.party, screen.enemies, screen.kind, battleHooks(run));
+  const battle = new Battle(run.party, screen.enemies, screen.kind, battleHooks(run), screen.variants ?? []);
   const root = h('div', { class: `screen battle ${screen.kind}` });
   let mode: Mode = { kind: 'root' };
   let infoUid: number | null = null;
@@ -49,12 +49,17 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
 
     const enemies = battle.units.filter((u) => u.side === 'enemy');
     const foeEl = (u: Unit) => {
-      const size = u.enemy?.kind === 'boss' ? 60 : u.row === 'back' ? 44 : 54;
+      const size = Math.round((u.enemy?.kind === 'boss' ? 60 : u.row === 'back' ? 44 : 54) * (u.variant?.scale ?? 1));
       const cls = ['foe', u.hp <= 0 ? 'dead' : '', changed(u), targetable.has(u.uid) ? 'targetable' : '', infoUid === u.uid ? 'target' : ''].join(' ');
+      const art = enemyArt(u.enemy!.name, size);
+      if (u.variant) art.style.setProperty('--tint', u.variant.tint);
+      if (u.variant) art.classList.add('variant');
+      const intent = battle.describeIntent(u);
       return h(
         'button',
         { class: cls, type: 'button', onclick: onUnit(u) },
-        enemyArt(u.enemy!.name, size),
+        intent ? h('span', { class: `intent ${intent.kind}` }, intent.label) : null,
+        art,
         h('span', { class: 'plate' }, h('span', { class: 'pname' }, u.name), bar(u.hp, battle.maxHp(u), 'hp', false), statusBadges(u).length ? h('span', { class: 'badges' }, statusBadges(u)) : null),
       );
     };
@@ -285,6 +290,7 @@ function enemyInfo(battle: Battle, u: Unit) {
     { class: 'win foe-info' },
     h('div', { class: 'head' }, h('span', { class: 'name' }, def.name, def.kind !== 'normal' ? h('span', { class: 'k' }, def.kind === 'boss' ? '　ボス' : '　強敵') : null), h('span', { class: 'k' }, `HP ${u.hp}/${battle.maxHp(u)}`)),
     h('div', { class: 'row2' }, h('span', { class: 'k' }, '弱点'), pills(def.weak ?? [], 'weak'), h('span', { class: 'k' }, '無効'), pills(immune, 'immune'), extra.map((x) => h('span', { class: 'pill none' }, x))),
+    u.variant ? h('div', { class: 'note variant-note' }, `変異個体：${u.variant.text}（報酬1.5倍）`) : null,
     h('div', { class: 'note' }, FEATURE.get(def.name) ?? ''),
   );
 }

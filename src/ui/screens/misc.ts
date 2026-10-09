@@ -1,7 +1,7 @@
 // 報酬・宝箱・ショップ・休憩所・イベント・仲間加入・加護・ランの結果。
 // どの画面も「帯 → パーティー → 場面の絵 → 中身（窓の中でスクロール）→ 決定ボタン」の並び。
 
-import { FLOORS, SKILL_BY_NAME } from '../../data';
+import { FLOORS, JOBS, SKILL_BY_NAME } from '../../data';
 import { BLESSING_BY_NAME } from '../../data/blessings';
 import { BALANCE } from '../../engine/balance';
 import { characterStats } from '../../engine/character';
@@ -13,20 +13,25 @@ import {
   chooseBlessing,
   choosePartner,
   clearSave,
-  inventoryFull,
   inventoryLimit,
   removeFromInventory,
   recruit,
   rest,
+  train,
+  trainOptions,
+  forgetPrice,
+  forgetSkill,
+  orderBooks,
+  orderPrice,
   sell,
   sellPrice,
-  type InvEntry,
+  type RewardPick,
   type Rewards,
 } from '../../engine/run';
 import { STATS, STAT_LABEL } from '../../engine/types';
 import { resumeScreen, type App } from '../app';
 import { entryIcon, floorBackground, icon, jobArt } from '../art';
-import { ask, h, toast } from '../dom';
+import { ask, choose, h, toast } from '../dom';
 import { entryDetail, entryTitle, isRare, skillLine } from '../describe';
 import type { IconName } from '../pixel/icons';
 import { partyGrid, topBar } from './party';
@@ -42,39 +47,60 @@ function scene(floor: number, actors: HTMLElement[], kind?: { icon: IconName; la
   );
 }
 
-/** 拾える物の一覧。拾うと一覧から消えて、持ち物に移る */
-function dropsList(app: App, drops: InvEntry[], rerender: () => void) {
-  const run = app.run!;
-  if (drops.length === 0) return h('p', { class: 'muted small' }, '拾える物はもうない。');
-  return h(
-    'ul',
-    { class: 'list' },
-    drops.map((d, i) =>
-      h(
-        'li',
-        { class: isRare(d) ? 'rare' : '' },
-        entryIcon(d, 18),
-        h('div', null, h('div', { class: 'name' }, entryTitle(d)), h('div', { class: 'desc' }, entryDetail(d))),
-        h(
-          'button',
-          {
-            class: 'btn small',
-            disabled: inventoryFull(run),
-            onclick: () => {
-              if (!addToInventory(run, d)) return toast('持ち物がいっぱい。下の持ち物から捨てて空きを作ろう');
-              drops.splice(i, 1);
-              app.save();
-              rerender();
-            },
-          },
-          inventoryFull(run) ? '満杯' : '拾う',
-        ),
-      ),
-    ),
-  );
+/** 報酬の選択：組ごとに候補から1つ選ぶ。選んだ物は持ち物に入る */
+interface PickState {
+  pick: RewardPick;
+  chosen: string | null;
+  skipped: boolean;
 }
 
-/** 今の持ち物（拾う画面で、空きを作るために捨てられる） */
+function picksBlock(app: App, states: PickState[], rerender: () => void) {
+  const run = app.run!;
+  return states.map((st) => {
+    const done = st.chosen !== null || st.skipped;
+    return h(
+      'div',
+      { class: 'pick-group' },
+      h('div', { class: 'section-title' }, st.pick.title),
+      done
+        ? h('p', { class: 'taken' }, st.chosen ? `「${st.chosen}」を手に入れた` : '何も取らなかった')
+        : h(
+            'div',
+            { class: 'reward-options' },
+            st.pick.options.map((e) =>
+              h(
+                'button',
+                {
+                  class: `reward-card ${isRare(e) ? 'rare' : ''}`,
+                  onclick: () => {
+                    if (!addToInventory(run, e)) return toast('持ち物がいっぱい。下の持ち物から捨てて空きを作ろう');
+                    st.chosen = e.name;
+                    app.save();
+                    rerender();
+                  },
+                },
+                entryIcon(e, 24),
+                h('div', { class: 'name' }, entryTitle(e)),
+                h('div', { class: 'desc' }, entryDetail(e)),
+              ),
+            ),
+            h(
+              'button',
+              {
+                class: 'btn small',
+                onclick: () => {
+                  st.skipped = true;
+                  rerender();
+                },
+              },
+              '取らない',
+            ),
+          ),
+    );
+  });
+}
+
+/** 今の持ち物（空きを作るために捨てられる） */
 function inventoryList(app: App, rerender: () => void) {
   const run = app.run!;
   if (run.inventory.length === 0) return h('p', { class: 'muted small' }, '何も持っていない');
@@ -105,26 +131,26 @@ function inventoryList(app: App, rerender: () => void) {
   );
 }
 
-/** 拾える物と持ち物を1つの窓に並べる */
-function pickupWindow(app: App, drops: InvEntry[], rerender: () => void) {
+/** 報酬の選択と持ち物を1つの窓に並べる */
+function pickupWindow(app: App, states: PickState[], rerender: () => void) {
   const run = app.run!;
   return h(
     'div',
     { class: 'win grow scroll' },
-    h('div', { class: 'section-title' }, `拾える物（${drops.length}）`),
-    dropsList(app, drops, rerender),
+    picksBlock(app, states, rerender),
     h('div', { class: 'section-title', style: 'margin-top:10px' }, `持ち物（${run.inventory.length}/${inventoryLimit(run)}）`),
     inventoryList(app, rerender),
   );
 }
 
-function leaveButton(label: string, drops: InvEntry[], go: () => void) {
+function leaveButton(label: string, states: PickState[], go: () => void) {
   return h(
     'button',
     {
       class: 'btn primary wide',
       onclick: async () => {
-        if (drops.length > 0 && !(await ask(`拾っていない物が${drops.length}個ある。置いていく？`, '置いていく'))) return;
+        const left = states.filter((s) => s.chosen === null && !s.skipped).length;
+        if (left > 0 && !(await ask('まだ選んでいない報酬がある。何も取らずに進む？', '取らずに進む'))) return;
         go();
       },
     },
@@ -136,7 +162,7 @@ export function rewardScreen(app: App, screen: { title: string; rewards: Rewards
   const run = app.run!;
   const root = h('div', { class: 'screen' });
   const r = screen.rewards;
-  const drops = [...r.drops];
+  const states: PickState[] = r.picks.map((pick) => ({ pick, chosen: null, skipped: false }));
   const render = () => {
     root.replaceChildren(
       topBar(app, render),
@@ -149,8 +175,8 @@ export function rewardScreen(app: App, screen: { title: string; rewards: Rewards
         r.levelUps.map((l) => h('p', { class: 'levelup' }, `${l.name} は Lv${l.level} になった`)),
         screen.boss ? h('p', { class: 'levelup' }, 'パーティー全員のHP・MPが全回復した') : null,
       ),
-      pickupWindow(app, drops, render),
-      leaveButton(run.recruits ? '仲間を選ぶ' : run.blessingChoices ? '加護を選ぶ' : 'マップへ', drops, () => {
+      pickupWindow(app, states, render),
+      leaveButton(run.recruits ? '仲間を選ぶ' : run.blessingChoices ? '加護を選ぶ' : 'マップへ', states, () => {
         app.save();
         app.go(resumeScreen(run));
       }),
@@ -160,18 +186,17 @@ export function rewardScreen(app: App, screen: { title: string; rewards: Rewards
   return root;
 }
 
-export function lootScreen(app: App, screen: { title: string; text: string; drops: InvEntry[] }) {
+export function lootScreen(app: App, screen: { title: string; text: string; picks: RewardPick[] }) {
   const run = app.run!;
   const root = h('div', { class: 'screen' });
-  const drops = [...screen.drops];
+  const states: PickState[] = screen.picks.map((pick) => ({ pick, chosen: null, skipped: false }));
   const render = () =>
     root.replaceChildren(
       topBar(app, render),
       partyGrid(run),
-      scene(run.floor, [icon('treasure', 56)]),
-      h('div', { class: 'win' }, h('div', { class: 'win-title' }, screen.title), h('p', { class: 'win-sub' }, screen.text)),
-      pickupWindow(app, drops, render),
-      leaveButton('マップへ', drops, () => {
+      h('div', { class: 'win' }, h('div', { class: 'char-head' }, icon('treasure', 36), h('div', null, h('div', { class: 'win-title' }, screen.title), h('p', { class: 'win-sub' }, screen.text)))),
+      pickupWindow(app, states, render),
+      leaveButton('マップへ', states, () => {
         app.save();
         app.go({ name: 'map' });
       }),
@@ -183,7 +208,7 @@ export function lootScreen(app: App, screen: { title: string; text: string; drop
 export function shopScreen(app: App) {
   const run = app.run!;
   const root = h('div', { class: 'screen' });
-  let tab: 'buy' | 'sell' = 'buy';
+  let tab: 'buy' | 'sell' | 'service' = 'buy';
   const render = () => {
     const shop = run.shop!;
     root.replaceChildren(
@@ -198,11 +223,14 @@ export function shopScreen(app: App) {
         { class: 'tabs' },
         h('button', { class: `tab ${tab === 'buy' ? 'active' : ''}`, onclick: () => ((tab = 'buy'), render()) }, '買う'),
         h('button', { class: `tab ${tab === 'sell' ? 'active' : ''}`, onclick: () => ((tab = 'sell'), render()) }, `売る（${run.inventory.length}）`),
+        h('button', { class: `tab ${tab === 'service' ? 'active' : ''}`, onclick: () => ((tab = 'service'), render()) }, 'サービス'),
       ),
       h(
         'div',
         { class: 'win grow scroll' },
-        tab === 'buy'
+        tab === 'service'
+          ? shopServices(app, render)
+          : tab === 'buy'
           ? h(
               'ul',
               { class: 'list' },
@@ -276,18 +304,117 @@ export function shopScreen(app: App) {
   return root;
 }
 
+/** ショップのサービス：技を忘れさせる・本の取り寄せ */
+function shopServices(app: App, rerender: () => void) {
+  const run = app.run!;
+  const shop = run.shop!;
+  const forget = async () => {
+    const who = await choose(
+      'だれの技を忘れさせる？',
+      run.party.map((c) => ({ label: c.isHero ? `主人公（${c.job}）` : c.name, value: c.id, disabled: c.skills.length === 0, note: c.skills.length === 0 ? '技がない' : undefined })),
+    );
+    if (!who) return;
+    const c = run.party.find((x) => x.id === who)!;
+    const sk = await choose(
+      'どの技を忘れる？',
+      c.skills.map((n) => ({ label: n, value: n, note: skillLine(SKILL_BY_NAME.get(n)!) })),
+      '忘れた技は二度と戻らない。',
+    );
+    if (!sk) return;
+    const err = forgetSkill(run, who, sk);
+    toast(err ?? `「${sk}」を忘れた`);
+    app.save();
+    rerender();
+  };
+  const order = async () => {
+    const jobs = [...new Set(run.party.map((c) => c.job))];
+    const all = JOBS.map((j) => j.name);
+    const job = await choose(
+      'どの職業の本を取り寄せる？',
+      [...jobs, ...all.filter((j) => !jobs.includes(j))].map((j) => ({ label: j, value: j, note: jobs.includes(j) ? 'パーティーにいる' : undefined })),
+    );
+    if (!job) return;
+    const res = orderBooks(run, job);
+    if (typeof res === 'string') toast(res);
+    app.save();
+    rerender();
+  };
+  return h(
+    'div',
+    { class: 'choice-list' },
+    h(
+      'button',
+      { class: 'menu-item', disabled: run.gold < forgetPrice(run), onclick: forget },
+      h('span', null, `技を忘れさせる（${forgetPrice(run)}G）`),
+      h('small', null, '技の枠を空ける。忘れた技は戻らない'),
+    ),
+    h(
+      'button',
+      { class: 'menu-item', disabled: !!shop.ordered || run.gold < orderPrice(run), onclick: order },
+      h('span', null, `本の取り寄せ（${orderPrice(run)}G）`),
+      h('small', null, shop.ordered ? 'この店ではもう取り寄せた' : '職業を指定すると、その職業の本が3冊届く。1冊選べる'),
+    ),
+    shop.orderOptions?.length
+      ? h(
+          'div',
+          { class: 'reward-options' },
+          shop.orderOptions.map((e) =>
+            h(
+              'button',
+              {
+                class: `reward-card ${isRare(e) ? 'rare' : ''}`,
+                onclick: () => {
+                  if (!addToInventory(run, e)) return toast('持ち物がいっぱい');
+                  shop.orderOptions = [];
+                  toast(`「${e.name}」を受け取った`);
+                  app.save();
+                  rerender();
+                },
+              },
+              entryIcon(e, 24),
+              h('div', { class: 'name' }, entryTitle(e)),
+              h('div', { class: 'desc' }, entryDetail(e)),
+            ),
+          ),
+        )
+      : null,
+  );
+}
+
 export function restScreen(app: App) {
   const run = app.run!;
   const root = h('div', { class: 'screen' });
-  let rested = false;
+  let done: string | null = null;
   const pct = Math.round(BALANCE.restRatio * 100);
+  const doTrain = async () => {
+    const who = await choose(
+      'だれを鍛える？',
+      run.party.map((c) => ({ label: c.isHero ? `主人公（${c.job}）` : c.name, value: c.id, disabled: c.hp <= 0, note: c.hp <= 0 ? '戦闘不能' : undefined })),
+    );
+    if (!who) return;
+    const stat = await choose(
+      '何を鍛える？（ずっと続く）',
+      trainOptions(run).map((o) => ({ label: `${STAT_LABEL[o.stat]} +${o.amount}`, value: o.stat })),
+    );
+    if (!stat) return;
+    train(run, who, stat);
+    const c = run.party.find((x) => x.id === who)!;
+    done = `${c.isHero ? '主人公' : c.name}は焚き火のそばで黙々と鍛えた。${STAT_LABEL[stat]}が上がった。`;
+    app.save();
+    render();
+  };
   const render = () =>
     root.replaceChildren(
       topBar(app, render),
       partyGrid(run),
       scene(run.floor, [icon('rest', 56)]),
-      h('div', { class: 'win grow' }, h('div', { class: 'win-title' }, '休憩所'), h('p', { class: 'story' }, rested ? '焚き火のそばで、つかの間の眠りについた。' : '消えかけた焚き火が、闇の中でかすかに揺れている。')),
-      rested
+      h(
+        'div',
+        { class: 'win grow' },
+        h('div', { class: 'win-title' }, '休憩所'),
+        h('p', { class: 'story' }, done ?? '消えかけた焚き火が、闇の中でかすかに揺れている。休むか、鍛えるか。どちらか一つだけ。'),
+      ),
+      done
         ? h(
             'button',
             {
@@ -308,24 +435,14 @@ export function restScreen(app: App) {
                 class: 'btn primary wide',
                 onclick: () => {
                   rest(run);
-                  rested = true;
+                  done = '焚き火のそばで、つかの間の眠りについた。体が軽くなった。';
                   app.save();
                   render();
                 },
               },
               `休む（HP・MP ${pct}%回復／倒れた仲間も復活）`,
             ),
-            h(
-              'button',
-              {
-                class: 'btn wide',
-                onclick: () => {
-                  app.save();
-                  app.go({ name: 'map' });
-                },
-              },
-              '休まずに出発する',
-            ),
+            h('button', { class: 'btn wide', onclick: doTrain }, `鍛える（1人の能力値がずっと上がる）`),
           ),
     );
   render();

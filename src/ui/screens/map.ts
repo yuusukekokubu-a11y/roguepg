@@ -35,7 +35,7 @@ export function mapScreen(app: App) {
       case 'elite':
       case 'boss': {
         const enc = encounterFor(run, n);
-        app.go({ name: 'battle', enemies: enc.enemies, kind: enc.kind, boss: n.type === 'boss' });
+        app.go({ name: 'battle', enemies: enc.enemies, kind: enc.kind, boss: n.type === 'boss', variants: enc.variants });
         return;
       }
       case 'rest':
@@ -47,7 +47,7 @@ export function mapScreen(app: App) {
         return;
       case 'treasure': {
         const t = treasure(run);
-        app.go({ name: 'loot', title: '宝箱', text: `宝箱を開けた。${t.gold}G を手に入れた。`, drops: t.drops });
+        app.go({ name: 'loot', title: '宝箱', text: `宝箱を開けた。${t.gold}G を手に入れた。`, picks: t.picks });
         return;
       }
       case 'event':

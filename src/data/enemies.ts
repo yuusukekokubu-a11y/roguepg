@@ -44,6 +44,8 @@ export interface EnemyDef {
   counter?: { status?: StatusId };
   /** 前列を集中して狙う */
   targetFront?: boolean;
+  /** HPの割合が一番低い相手を狙う */
+  targetLowest?: boolean;
   /** HPが半分以下になったときの変化（第2段階） */
   halfHp?: { text: string; pattern?: string[]; doubleAction?: boolean; immuneAll?: boolean };
 }
@@ -283,48 +285,48 @@ export const ENEMIES: EnemyDef[] = [
   // ───────────── 3層：火山（やけどを多用。炎の敵はやけど無効。硬い敵・反撃する敵） ─────────────
   {
     name: '火トカゲ', icon: '🦎', floor: 3, kind: 'normal',
-    hp: 72, atk: 31, def: 14, mag: 10, spr: 12, spd: 14, exp: 42, gold: 14,
+    hp: 78, atk: 33, def: 14, mag: 10, spr: 12, spd: 14, exp: 42, gold: 14,
     immune: ['burn'],
     actions: [{ name: '炎の牙', effect: '物理ダメージ小＋やけど', target: 'enemy' }],
   },
   {
     name: '溶岩スライム', icon: '🟠', floor: 3, kind: 'normal',
-    hp: 78, atk: 26, def: 14, mag: 10, spr: 10, spd: 8, exp: 42, gold: 14,
+    hp: 84, atk: 27, def: 14, mag: 10, spr: 10, spd: 8, exp: 42, gold: 14,
     immune: ['burn'], counter: { status: 'burn' },
     actions: [{ name: '体当たり', effect: '物理ダメージ中', target: 'enemy' }],
   },
   {
     name: '火の鳥', icon: '🐦‍🔥', floor: 3, kind: 'normal',
-    hp: 58, atk: 22, def: 10, mag: 29, spr: 14, spd: 24, exp: 45, gold: 15,
+    hp: 63, atk: 23, def: 10, mag: 30, spr: 14, spd: 24, exp: 45, gold: 15,
     back: true, immune: ['burn'],
     actions: [{ name: '火の粉', effect: '魔法ダメージ小＋やけど', target: 'enemyAll' }],
   },
   {
     name: '岩ゴーレム', icon: '🗿', floor: 3, kind: 'normal',
-    hp: 104, atk: 34, def: 40, mag: 5, spr: 6, spd: 6, exp: 48, gold: 16,
+    hp: 112, atk: 36, def: 40, mag: 5, spr: 6, spd: 6, exp: 48, gold: 16,
     immune: ['poison'],
     actions: [{ name: '岩投げ', effect: '物理ダメージ中', target: 'enemy' }],
   },
   {
     name: '火山コウモリ', icon: '🦇', floor: 3, kind: 'normal',
-    hp: 58, atk: 29, def: 12, mag: 7, spr: 10, spd: 18, exp: 42, gold: 14,
+    hp: 63, atk: 30, def: 12, mag: 7, spr: 10, spd: 18, exp: 42, gold: 14,
     actions: [{ name: '吸血', effect: '物理ダメージ中＋吸収', target: 'enemy' }],
   },
   {
     name: '炎の魔導師', icon: '🧙‍♂️', floor: 3, kind: 'normal',
-    hp: 72, atk: 12, def: 12, mag: 36, spr: 18, spd: 14, exp: 48, gold: 18,
+    hp: 78, atk: 13, def: 12, mag: 38, spr: 18, spd: 14, exp: 48, gold: 18,
     back: true, immune: ['burn'],
     actions: [{ name: '炎の嵐', effect: '魔法ダメージ小＋やけど', target: 'enemyAll' }],
   },
   {
     name: '溶岩ゴーレム', icon: '🌋', floor: 3, kind: 'elite',
-    hp: 364, atk: 41, def: 45, mag: 7, spr: 10, spd: 7, exp: 168, gold: 110,
+    hp: 393, atk: 43, def: 45, mag: 7, spr: 10, spd: 7, exp: 168, gold: 110,
     immune: ['burn', 'poison'], counter: {},
     actions: [{ name: '溶岩の拳', effect: '物理ダメージ大', target: 'enemy' }],
   },
   {
     name: 'サラマンダー', icon: '🐉', floor: 3, kind: 'elite',
-    hp: 286, atk: 34, def: 20, mag: 36, spr: 18, spd: 16, exp: 168, gold: 110,
+    hp: 309, atk: 36, def: 20, mag: 38, spr: 18, spd: 16, exp: 168, gold: 110,
     immune: ['burn'],
     pattern: ['灼熱の息', '爪'],
     actions: [
@@ -334,7 +336,7 @@ export const ENEMIES: EnemyDef[] = [
   },
   {
     name: '炎竜', icon: '🐲', floor: 3, kind: 'boss',
-    hp: 910, atk: 41, def: 24, mag: 43, spr: 22, spd: 14, exp: 420, gold: 250,
+    hp: 983, atk: 43, def: 24, mag: 45, spr: 22, spd: 14, exp: 420, gold: 250,
     immune: ['burn'], statusResist: 0.6,
     pattern: ['爪', '爪', '炎のブレス'],
     halfHp: { text: '炎竜の体が赤熱した！（ブレスの溜めが早くなった）', pattern: ['爪', '炎のブレス'] },
@@ -347,18 +349,18 @@ export const ENEMIES: EnemyDef[] = [
   // ───────────── 4層：魔王の城（強化を打ち消す。状態異常が効きにくい敵が増える） ─────────────
   {
     name: '魔族の兵士', icon: '👹', floor: 4, kind: 'normal',
-    hp: 118, atk: 47, def: 24, mag: 18, spr: 18, spd: 16, exp: 78, gold: 22,
+    hp: 127, atk: 49, def: 24, mag: 19, spr: 18, spd: 16, exp: 78, gold: 22,
     actions: [{ name: '剣', effect: '物理ダメージ中', target: 'enemy' }],
   },
   {
     name: '呪いの鎧', icon: '🛡️', floor: 4, kind: 'normal',
-    hp: 145, atk: 50, def: 40, mag: 10, spr: 14, spd: 9, exp: 84, gold: 24,
+    hp: 157, atk: 52, def: 40, mag: 10, spr: 14, spd: 9, exp: 84, gold: 24,
     immune: ['poison', 'confuse'],
     actions: [{ name: '大剣', effect: '物理ダメージ中', target: 'enemy' }],
   },
   {
     name: '夢魔', icon: '😈', floor: 4, kind: 'normal',
-    hp: 92, atk: 20, def: 18, mag: 44, spr: 28, spd: 20, exp: 81, gold: 24,
+    hp: 99, atk: 21, def: 18, mag: 46, spr: 28, spd: 20, exp: 81, gold: 24,
     back: true, immune: ['confuse'],
     actions: [
       { name: '惑わしの歌', effect: '混乱', target: 'enemy', weight: 2 },
@@ -367,12 +369,12 @@ export const ENEMIES: EnemyDef[] = [
   },
   {
     name: '魔獣', icon: '🐗', floor: 4, kind: 'normal',
-    hp: 132, atk: 47, def: 22, mag: 10, spr: 14, spd: 18, exp: 83, gold: 22,
+    hp: 143, atk: 49, def: 22, mag: 10, spr: 14, spd: 18, exp: 83, gold: 22,
     actions: [{ name: '引き裂く', effect: '物理ダメージ小×2回', target: 'enemy' }],
   },
   {
     name: '闇の司祭', icon: '🕯️', floor: 4, kind: 'normal',
-    hp: 106, atk: 18, def: 18, mag: 40, spr: 30, spd: 15, exp: 86, gold: 26,
+    hp: 114, atk: 19, def: 18, mag: 42, spr: 30, spd: 15, exp: 86, gold: 26,
     back: true,
     actions: [
       { name: '闇の癒し', effect: 'HP回復中', target: 'ally', weight: 2 },
@@ -382,13 +384,13 @@ export const ENEMIES: EnemyDef[] = [
   },
   {
     name: 'ガーゴイル', icon: '🦅', floor: 4, kind: 'normal',
-    hp: 125, atk: 44, def: 38, mag: 10, spr: 16, spd: 14, exp: 83, gold: 24,
+    hp: 135, atk: 46, def: 38, mag: 10, spr: 16, spd: 14, exp: 83, gold: 24,
     immune: ['poison'], counter: {},
     actions: [{ name: '爪', effect: '物理ダメージ中', target: 'enemy' }],
   },
   {
     name: '魔王の近衛騎士', icon: '⚜️', floor: 4, kind: 'elite',
-    hp: 437, atk: 44, def: 40, mag: 11, spr: 24, spd: 14, exp: 260, gold: 180,
+    hp: 472, atk: 46, def: 40, mag: 12, spr: 24, spd: 14, exp: 260, gold: 180,
     statusResist: 0.5,
     pattern: ['かばう', '挑発', '剣'],
     actions: [
@@ -399,7 +401,7 @@ export const ENEMIES: EnemyDef[] = [
   },
   {
     name: '大魔導師', icon: '🧙‍♀️', floor: 4, kind: 'elite',
-    hp: 368, atk: 15, def: 22, mag: 48, spr: 36, spd: 18, exp: 260, gold: 180,
+    hp: 397, atk: 16, def: 22, mag: 50, spr: 36, spd: 18, exp: 260, gold: 180,
     back: true, statusResist: 0.5,
     pattern: ['解呪', '闇の嵐', '闇の矢', '闇の嵐'],
     actions: [
@@ -410,7 +412,7 @@ export const ENEMIES: EnemyDef[] = [
   },
   {
     name: '魔王', icon: '👿', floor: 4, kind: 'boss',
-    hp: 1150, atk: 48, def: 34, mag: 53, spr: 34, spd: 18, exp: 0, gold: 0,
+    hp: 1242, atk: 50, def: 34, mag: 56, spr: 34, spd: 18, exp: 0, gold: 0,
     statusResist: 0.8,
     pattern: ['闇の嵐', '解呪', '魔弾', '闇の嵐'],
     halfHp: {
@@ -426,6 +428,48 @@ export const ENEMIES: EnemyDef[] = [
       { name: '滅びの波動', effect: '魔法ダメージ大', target: 'enemyAll' },
     ],
   },
+
+  // ───────────── 追加の敵（各層4体） ─────────────
+  // 1層
+  { name: '腐肉の蠅群', icon: '', floor: 1, kind: 'normal', hp: 14, atk: 7, def: 2, mag: 2, spr: 3, spd: 16, exp: 5, gold: 3, evasion: 0.2,
+    actions: [{ name: 'たかる', effect: '物理ダメージ小×3回', target: 'random' }] },
+  { name: '墓荒らし', icon: '', floor: 1, kind: 'normal', hp: 24, atk: 9, def: 4, mag: 3, spr: 4, spd: 10, exp: 6, gold: 9,
+    actions: [{ name: '錆びた鎌', effect: '物理ダメージ小＋防御ダウン', target: 'enemy', weight: 2 }, { name: '斬りつけ', effect: '物理ダメージ中', target: 'enemy' }] },
+  { name: '首吊りカカシ', icon: '', floor: 1, kind: 'normal', hp: 30, atk: 6, def: 6, mag: 8, spr: 6, spd: 7, exp: 7, gold: 5, immune: ['poison'],
+    pattern: ['見つめる', 'ぶらさがる', '見つめる'],
+    actions: [{ name: '見つめる', effect: '混乱', target: 'enemy' }, { name: 'ぶらさがる', effect: '挑発', target: 'self' }] },
+  { name: '牙イノシシ', icon: '', floor: 1, kind: 'normal', hp: 26, atk: 11, def: 5, mag: 2, spr: 3, spd: 9, exp: 7, gold: 5,
+    pattern: ['鼻を鳴らす', '突進'],
+    actions: [{ name: '鼻を鳴らす', effect: '攻撃力アップ', target: 'self' }, { name: '突進', effect: '溜め：次のターンに物理ダメージ中', target: 'enemy' }] },
+  // 2層
+  { name: '霜の亡霊', icon: '', floor: 2, kind: 'normal', hp: 30, atk: 8, def: 6, mag: 18, spr: 16, spd: 12, exp: 22, gold: 9, back: true, immune: ['poison'], weak: ['burn'],
+    actions: [{ name: '凍える嘆き', effect: '魔法ダメージ小＋素早さダウン', target: 'enemyAll' }] },
+  { name: '氷蜘蛛', icon: '', floor: 2, kind: 'normal', hp: 34, atk: 16, def: 12, mag: 6, spr: 8, spd: 14, exp: 22, gold: 9, weak: ['burn'],
+    actions: [{ name: '凍てつく糸', effect: '物理ダメージ小＋スタン', target: 'enemy', weight: 1 }, { name: 'かみつき', effect: '物理ダメージ中', target: 'enemy', weight: 2 }] },
+  { name: '凍てつく骸骨弓兵', icon: '', floor: 2, kind: 'normal', hp: 30, atk: 18, def: 9, mag: 4, spr: 8, spd: 12, exp: 22, gold: 10, back: true, immune: ['poison'], targetLowest: true,
+    actions: [{ name: '狙い撃ち', effect: '物理ダメージ中', target: 'enemy' }] },
+  { name: '吹雪の鷲', icon: '', floor: 2, kind: 'normal', hp: 28, atk: 15, def: 7, mag: 4, spr: 8, spd: 22, exp: 21, gold: 8, weak: ['burn'],
+    actions: [{ name: '急降下', effect: '物理ダメージ小×2回', target: 'random' }] },
+  // 3層
+  { name: '火吹き小鬼', icon: '', floor: 3, kind: 'normal', hp: 60, atk: 20, def: 12, mag: 30, spr: 12, spd: 16, exp: 44, gold: 15, immune: ['burn'],
+    actions: [{ name: '火吹き', effect: '魔法ダメージ小＋やけど', target: 'enemyFront' }] },
+  { name: '黒曜の蠍', icon: '', floor: 3, kind: 'normal', hp: 70, atk: 30, def: 32, mag: 6, spr: 8, spd: 12, exp: 46, gold: 15,
+    actions: [{ name: '毒針', effect: '物理ダメージ中＋毒', target: 'enemy' }] },
+  { name: '溶岩の大蛇', icon: '', floor: 3, kind: 'normal', hp: 84, atk: 28, def: 14, mag: 10, spr: 12, spd: 15, exp: 46, gold: 15, immune: ['burn'],
+    actions: [{ name: '締めつけ', effect: '物理ダメージ小×2回', target: 'enemy' }] },
+  { name: '燃えさかる骸', icon: '', floor: 3, kind: 'normal', hp: 76, atk: 27, def: 12, mag: 8, spr: 8, spd: 9, exp: 44, gold: 14, immune: ['burn', 'poison'], counter: { status: 'burn' },
+    actions: [{ name: '燃える腕', effect: '物理ダメージ中＋やけど', target: 'enemy' }] },
+  // 4層
+  { name: '影の暗殺者', icon: '', floor: 4, kind: 'normal', hp: 96, atk: 48, def: 18, mag: 12, spr: 18, spd: 24, exp: 82, gold: 26, evasion: 0.2, targetLowest: true,
+    actions: [{ name: '急所突き', effect: '物理ダメージ中', target: 'enemy' }] },
+  { name: '骨の竜騎兵', icon: '', floor: 4, kind: 'normal', hp: 140, atk: 46, def: 36, mag: 10, spr: 18, spd: 12, exp: 84, gold: 24, immune: ['poison'],
+    pattern: ['竜骨の構え', '突撃', '突撃'],
+    actions: [{ name: '竜骨の構え', effect: '挑発＋反撃（数ターン）', target: 'self' }, { name: '突撃', effect: '物理ダメージ中', target: 'enemy' }] },
+  { name: '血の祭壇', icon: '', floor: 4, kind: 'normal', hp: 120, atk: 10, def: 30, mag: 40, spr: 30, spd: 10, exp: 80, gold: 30, back: true, immune: ['poison', 'confuse'],
+    pattern: ['血の儀式', '血の雨'],
+    actions: [{ name: '血の儀式', effect: '攻撃力＋魔力アップ', target: 'allyAll' }, { name: '血の雨', effect: '魔法ダメージ小', target: 'enemyAll' }] },
+  { name: '堕ちた聖職者', icon: '', floor: 4, kind: 'normal', hp: 104, atk: 18, def: 18, mag: 42, spr: 32, spd: 15, exp: 86, gold: 26, back: true,
+    actions: [{ name: '冒涜の祈り', effect: 'HP回復中', target: 'ally', weight: 1 }, { name: '解呪', effect: '強化を打ち消す', target: 'enemyAll', weight: 1 }, { name: '黒い聖光', effect: '魔法ダメージ中', target: 'enemy', weight: 2 }] },
 ];
 
 export const ENEMY_BY_NAME = new Map(ENEMIES.map((e) => [e.name, e]));
@@ -446,6 +490,9 @@ export const ENCOUNTERS: Record<number, FloorEncounters> = {
       ['野ウサギ', '野ウサギ'],
       ['大ガラス', 'スライム'],
       ['毒キノコ', 'スライム'],
+      ['腐肉の蠅群', 'スライム'],
+      ['墓荒らし', '野ウサギ'],
+      ['牙イノシシ'],
     ],
     late: [
       ['草原オオカミ', '草原オオカミ', '草原オオカミ'],
@@ -454,8 +501,12 @@ export const ENCOUNTERS: Record<number, FloorEncounters> = {
       ['毒キノコ', '毒キノコ', '大ガラス'],
       ['スライム', 'スライム', 'スライム', 'スライム'],
       ['野盗', '大ガラス'],
+      ['首吊りカカシ', '草原オオカミ', '草原オオカミ'],
+      ['牙イノシシ', '牙イノシシ'],
+      ['墓荒らし', '墓荒らし', '腐肉の蠅群'],
+      ['首吊りカカシ', '野盗', '大ガラス'],
     ],
-    elite: [['森の大熊'], ['野盗の用心棒', '野盗']],
+    elite: [['森の大熊'], ['野盗の用心棒', '野盗'], ['森の大熊', '腐肉の蠅群']],
     boss: [['草原の主（大角獣）']],
   },
   2: {
@@ -465,6 +516,8 @@ export const ENCOUNTERS: Record<number, FloorEncounters> = {
       ['氷の精', '雪原の小鬼'],
       ['氷柱コウモリ', '雪ウサギ'],
       ['凍った亡者'],
+      ['吹雪の鷲', '雪ウサギ'],
+      ['氷蜘蛛', '氷柱コウモリ'],
     ],
     late: [
       ['雪狼', '雪狼', '雪狼'],
@@ -472,8 +525,12 @@ export const ENCOUNTERS: Record<number, FloorEncounters> = {
       ['雪原の小鬼', '雪原の小鬼', '氷柱コウモリ'],
       ['雪ウサギ', '雪ウサギ', '氷の精'],
       ['凍った亡者', '雪狼', '氷柱コウモリ'],
+      ['凍てつく骸骨弓兵', '凍った亡者', '凍った亡者'],
+      ['霜の亡霊', '雪狼', '雪狼'],
+      ['氷蜘蛛', '氷蜘蛛', '霜の亡霊'],
+      ['吹雪の鷲', '吹雪の鷲', '凍てつく骸骨弓兵'],
     ],
-    elite: [['雪男'], ['氷の魔術師', '雪原の小鬼']],
+    elite: [['雪男'], ['氷の魔術師', '雪原の小鬼'], ['雪男', '霜の亡霊']],
     boss: [['氷の女王']],
   },
   3: {
@@ -483,6 +540,8 @@ export const ENCOUNTERS: Record<number, FloorEncounters> = {
       ['岩ゴーレム'],
       ['火の鳥', '火トカゲ'],
       ['炎の魔導師', '溶岩スライム'],
+      ['黒曜の蠍', '火吹き小鬼'],
+      ['溶岩の大蛇'],
     ],
     late: [
       ['火トカゲ', '火トカゲ', '火の鳥'],
@@ -490,8 +549,12 @@ export const ENCOUNTERS: Record<number, FloorEncounters> = {
       ['溶岩スライム', '溶岩スライム', '火山コウモリ'],
       ['火山コウモリ', '火山コウモリ', '火の鳥'],
       ['岩ゴーレム', '火トカゲ', '炎の魔導師'],
+      ['燃えさかる骸', '燃えさかる骸', '火吹き小鬼'],
+      ['黒曜の蠍', '黒曜の蠍', '炎の魔導師'],
+      ['溶岩の大蛇', '火吹き小鬼', '火吹き小鬼'],
+      ['燃えさかる骸', '岩ゴーレム', '火の鳥'],
     ],
-    elite: [['溶岩ゴーレム'], ['サラマンダー']],
+    elite: [['溶岩ゴーレム'], ['サラマンダー'], ['溶岩ゴーレム', '火吹き小鬼']],
     boss: [['炎竜']],
   },
   4: {
@@ -500,14 +563,20 @@ export const ENCOUNTERS: Record<number, FloorEncounters> = {
       ['呪いの鎧', '夢魔'],
       ['魔獣', '闇の司祭'],
       ['ガーゴイル', '魔族の兵士'],
+      ['影の暗殺者', '魔族の兵士'],
+      ['骨の竜騎兵', '堕ちた聖職者'],
     ],
     late: [
       ['魔族の兵士', '魔獣', '闇の司祭'],
       ['呪いの鎧', '呪いの鎧', '夢魔'],
       ['ガーゴイル', '魔獣', '夢魔'],
       ['魔族の兵士', '魔族の兵士', '闇の司祭'],
+      ['血の祭壇', '魔族の兵士', '魔族の兵士'],
+      ['影の暗殺者', '影の暗殺者', '夢魔'],
+      ['骨の竜騎兵', '血の祭壇', '魔獣'],
+      ['堕ちた聖職者', '呪いの鎧', 'ガーゴイル'],
     ],
-    elite: [['魔王の近衛騎士', '魔族の兵士', '魔族の兵士'], ['大魔導師', '呪いの鎧']],
+    elite: [['魔王の近衛騎士', '魔族の兵士', '魔族の兵士'], ['大魔導師', '呪いの鎧'], ['魔王の近衛騎士', '堕ちた聖職者']],
     boss: [['魔王']],
   },
 };

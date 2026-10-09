@@ -91,6 +91,8 @@ export function openParty(app: App, onChange?: () => void) {
     onChange?.();
   };
   const render = () => {
+    // 装備・使用などの操作のたびに保存する（開いたままブラウザを閉じても消えないように）
+    app.save();
     const c = run.party.find((x) => x.id === selected) ?? run.party[0];
     const scroll = overlay.querySelector('.scroll');
     const top = scroll?.scrollTop ?? 0;
@@ -218,12 +220,14 @@ function inventoryPanel(run: RunState, rerender: () => void) {
 function actionButtons(run: RunState, index: number, rerender: () => void) {
   const e = run.inventory[index];
   const buttons: HTMLElement[] = [];
-  const pickChar = (title: string, filter: (c: Character) => string | null) =>
+  // filter は「選べない理由」（選べるなら null）、info は選べる人に添える参考情報
+  const pickChar = (title: string, filter: (c: Character) => string | null, info?: (c: Character) => string | null) =>
     choose(
       title,
       run.party.map((c) => {
         const why = filter(c);
-        return { label: c.isHero ? `主人公（${c.job}）` : c.name, value: c.id, note: why ?? undefined, disabled: !!why };
+        const note = why ?? info?.(c) ?? undefined;
+        return { label: c.isHero ? `主人公（${c.job}）` : c.name, value: c.id, note, disabled: !!why };
       }),
     );
 
@@ -283,11 +287,14 @@ function actionButtons(run: RunState, index: number, rerender: () => void) {
         {
           class: 'btn small',
           onclick: async () => {
-            const who = await pickChar(`${e.name} をだれが装備する？`, (c) => {
-              if (JOB_BY_NAME.get(c.job)!.lineage !== d.lineage) return `${d.lineage}専用`;
-              const cur = d.slot === 'weapon' ? c.weapon : c.armor;
-              return cur ? `いま：${cur}（${statsText(equipmentDef(cur).stats)}）` : null;
-            });
+            const who = await pickChar(
+              `${e.name} をだれが装備する？`,
+              (c) => (JOB_BY_NAME.get(c.job)!.lineage !== d.lineage ? `${d.lineage}専用` : null),
+              (c) => {
+                const cur = d.slot === 'weapon' ? c.weapon : c.armor;
+                return cur ? `いま：${cur}（${statsText(equipmentDef(cur).stats)}）` : null;
+              },
+            );
             if (!who) return;
             const err = equip(run, index, who);
             toast(err ?? `${e.name} を装備した`);

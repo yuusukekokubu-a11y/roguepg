@@ -32,7 +32,7 @@ import { STATS, STAT_LABEL } from '../../engine/types';
 import { resumeScreen, type App } from '../app';
 import { entryIcon, floorBackground, icon, jobArt } from '../art';
 import { ask, choose, h, toast } from '../dom';
-import { entryDetail, entryTitle, isRare, skillLine } from '../describe';
+import { entryDetail, entryTitle, isRare, skillLine, traitLine } from '../describe';
 import type { IconName } from '../pixel/icons';
 import { partyGrid, topBar } from './party';
 
@@ -555,6 +555,7 @@ export function recruitScreen(app: App) {
             { class: 'pick-card', onclick: () => pickOne(i) },
             jobArt(c.job, 40),
             h('h3', null, c.job),
+            traitLine(c.job),
             h('div', { class: 'stat-row' }, STATS.map((s) => h('span', null, h('b', null, STAT_LABEL[s]), st[s]))),
             h('p', null, c.skills.map((n) => `${n}：${skillLine(SKILL_BY_NAME.get(n)!)}`).join('\n')),
           );

@@ -3,6 +3,7 @@
 import { ACCESSORY_BY_NAME, JOB_BY_NAME, type Grade } from '../data';
 import { EQUIPMENT } from '../data/equipment';
 import type { AccessoryMod } from '../data/accessoryMods';
+import { JOB_TRAITS } from '../data/jobTraits';
 import { BALANCE } from './balance';
 import { STATS, type Stat } from './types';
 
@@ -42,6 +43,12 @@ export function accessoryMods(c: Character): AccessoryMod[] {
   return c.accessories.filter((a): a is string => !!a).map((a) => ACCESSORY_BY_NAME.get(a)!.mod);
 }
 
+/** 職業の特性＋アクセサリーの効果 */
+export function characterMods(c: Character): AccessoryMod[] {
+  const trait = JOB_TRAITS[c.job];
+  return trait ? [trait.mod, ...accessoryMods(c)] : accessoryMods(c);
+}
+
 /** 装備・アクセサリー（常に効くもの）込みのステータス。hp/mp は最大値 */
 export function characterStats(c: Character): Stats {
   const st = jobStats(c.job, c.level);
@@ -51,7 +58,7 @@ export function characterStats(c: Character): Stats {
     for (const [k, v] of Object.entries(def.stats)) st[k as Stat] += v;
   }
   for (const [k, v] of Object.entries(c.bonus ?? {})) st[k as Stat] += v;
-  for (const mod of accessoryMods(c)) {
+  for (const mod of characterMods(c)) {
     for (const [k, v] of Object.entries(mod.statMul ?? {})) st[k as Stat] = Math.max(1, Math.round(st[k as Stat] * v));
   }
   return st;

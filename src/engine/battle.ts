@@ -8,7 +8,7 @@ import type { AccessoryMod, AccCondition } from '../data/accessoryMods';
 import { ENEMY_BY_NAME, type EnemyAction, type EnemyDef } from '../data/enemies';
 import { VARIANT_BY_ID, VARIANT_REWARD, type VariantDef } from '../data/variants';
 import { BALANCE } from './balance';
-import { accessoryMods, characterStats, type Character, type Stats } from './character';
+import { characterMods, characterStats, type Character, type Stats } from './character';
 import { parseAction } from './parser';
 import type { Rng } from './rng';
 import { STATUS_LABEL, STAT_LABEL, type Condition, type Cost, type Effect, type Stat, type StatusId, type TargetKind } from './types';
@@ -185,7 +185,7 @@ export class Battle {
 
   /** アクセサリー＋加護 */
   private playerMods(c: Character): AccessoryMod[] {
-    return [...accessoryMods(c), ...(this.hooks.blessings ?? [])];
+    return [...characterMods(c), ...(this.hooks.blessings ?? [])];
   }
 
   private makePlayerUnit(c: Character): Unit {
@@ -211,7 +211,10 @@ export class Battle {
   }
 
   private makeEnemyUnit(def: EnemyDef, label: string, variant?: VariantDef): Unit {
-    const base: Stats = { hp: def.hp, mp: 99, atk: def.atk, def: def.def, mag: def.mag, spr: def.spr, spd: def.spd };
+    const fl = BALANCE.enemyScale[def.floor] ?? { hp: 1, atk: 1 };
+    const bs = def.kind === 'boss' && def.floor >= 2 ? BALANCE.bossScale : { hp: 1, atk: 1 };
+    const sc = { hp: fl.hp * bs.hp, atk: fl.atk * bs.atk };
+    const base: Stats = { hp: Math.round(def.hp * sc.hp), mp: 99, atk: Math.round(def.atk * sc.atk), def: def.def, mag: Math.round(def.mag * sc.atk), spr: def.spr, spd: def.spd };
     for (const [k, v] of Object.entries(variant?.stats ?? {})) base[k as Stat] = Math.max(1, Math.round(base[k as Stat] * v));
     return {
       ...this.blankUnit(),
@@ -934,7 +937,7 @@ export class Battle {
   private counterAttack(t: Unit, attacker: Unit, status?: StatusId) {
     if (t.status.stun) return;
     this.push(`${t.name} の反撃！`, 'turn');
-    const mul = t.mods.reduce((a, m) => a * (m.counterMul ?? 1), 1);
+    const mul = t.mods.reduce((a, m) => a * (m.counterMul ?? 1), t.side === 'player' ? BALANCE.skill.counterPower : 1);
     const effects: Effect[] = [NORMAL_ATTACK];
     if (status) effects.push({ kind: 'status', status, stacks: 1 });
     this.execute(t, { name: '反撃', effects, conditions: [], target: 'enemy', isCounter: true, powerMul: mul }, attacker.uid, true);
@@ -975,16 +978,16 @@ export class Battle {
           if (this.statusCount(t) > 0) m *= 1.6;
           break;
         case 'targetPoisoned':
-          if (t.status.poison) m *= 1.6;
+          if (t.status.poison) m *= BALANCE.skill.poisonedMul;
           break;
         case 'targetPoisonedHuge':
-          if (t.status.poison) m *= 2.2;
+          if (t.status.poison) m *= BALANCE.skill.poisonedHugeMul;
           break;
         case 'selfHpLow':
-          m *= 1 + (1 - u.hp / this.maxHp(u)) * 1.5;
+          m *= 1 + (1 - u.hp / this.maxHp(u)) * BALANCE.skill.selfHpLowMul;
           break;
         case 'defHigh':
-          m *= 1 + this.stat(u, 'def') / 25;
+          m *= 1 + this.stat(u, 'def') / BALANCE.skill.defHighDiv;
           break;
         case 'spdHigh':
           m *= 1 + this.stat(u, 'spd') / 25;
@@ -1070,6 +1073,10 @@ export class Battle {
     if (!physical) for (const m of t.mods) if (m.magicDamageTakenMul) dmg *= m.magicDamageTakenMul;
     for (const m of t.mods) if (m.damageTakenMul) dmg *= m.damageTakenMul;
     if (covered) for (const m of t.mods) if (m.coverDamageMul) dmg *= m.coverDamageMul;
+    if (t.side === 'player' && t.side !== u.side) {
+      if (covered) dmg *= BALANCE.skill.coverDamageMul;
+      else if (this.hasLinger(t, 'taunt')) dmg *= BALANCE.skill.tauntDamageMul;
+    }
     const crit = ctx.crit || e.crit || (!ctx.spec.isItem && this.rng.chance(BALANCE.critChance));
     if (crit) dmg *= BALANCE.critMul;
     dmg *= 1 + (this.rng.next() * 2 - 1) * BALANCE.variance;
@@ -1425,7 +1432,7 @@ export class Battle {
         return;
       case 'steal': {
         if (t.stolenFrom || t.side === u.side) return void this.push(`${t.name} は何も持っていない。`, 'info');
-        if (!this.rng.chance(e.rare ? 0.6 : 0.7)) return void this.push('盗みに失敗した！', 'info');
+        if (!this.rng.chance(e.rare ? BALANCE.skill.stealChance.rare : BALANCE.skill.stealChance.normal)) return void this.push('盗みに失敗した！', 'info');
         t.stolenFrom = true;
         const pool = ITEMS.filter((i) => i.rare === e.rare && !i.effects.some((x) => x.kind === 'levelUp'));
         const it = this.rng.pick(pool);

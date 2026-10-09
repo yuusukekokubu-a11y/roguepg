@@ -59,7 +59,7 @@ export function chooseCommand(b: Battle, u: Unit, rng: Rng, items: string[] = []
     const heal = usable.find((s) => s.effects.some((e) => e.kind === 'heal') && s.target !== 'enemy');
     if (heal) return { type: 'skill', skill: heal.name, target: heal.target === 'ally' ? low.uid : undefined };
     const herb = items.find((n) => ITEM_BY_NAME.get(n)?.effects.some((e) => e.kind === 'heal'));
-    if (herb && low === u) return { type: 'item', item: herb, target: ITEM_BY_NAME.get(herb)!.target === 'ally' ? u.uid : undefined };
+    if (herb) return { type: 'item', item: herb, target: ITEM_BY_NAME.get(herb)!.target === 'ally' ? low.uid : undefined };
   }
   // 攻撃技（敵が多いなら全体技を優先）
   const attacks = usable.filter((s) => s.effects.some((e) => e.kind === 'damage' || e.kind === 'delayed' || e.kind === 'tick' || e.kind === 'status'));

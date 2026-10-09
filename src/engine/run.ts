@@ -7,7 +7,7 @@ import { ENCOUNTERS, ENEMY_BY_NAME } from '../data/enemies';
 import { VARIANTS, VARIANT_CHANCE } from '../data/variants';
 import { EQUIPMENT, type EquipmentDef } from '../data/equipment';
 import { BALANCE } from './balance';
-import { accessoryMods, characterStats, clampVitals, createCharacter, gainExp, levelUp, skillSlots, type Character } from './character';
+import { characterMods, characterStats, clampVitals, createCharacter, gainExp, levelUp, skillSlots, type Character } from './character';
 import { generateMap, nextChoices, findNode, type FloorMap, type MapNode } from './map';
 import { Rng } from './rng';
 import type { BattleHooks, BattleKind } from './battle';
@@ -107,7 +107,7 @@ export function newRun(job: string, starterBook: string, seed = Math.floor(Math.
 // ───────────────────────── 持ち物 ─────────────────────────
 
 export function inventoryLimit(run: RunState): number {
-  return BALANCE.inventoryLimit + run.party.reduce((a, c) => a + accessoryMods(c).reduce((b, m) => b + (m.inventoryPlus ?? 0), 0), 0);
+  return BALANCE.inventoryLimit + run.party.reduce((a, c) => a + characterMods(c).reduce((b, m) => b + (m.inventoryPlus ?? 0), 0), 0);
 }
 
 export function inventoryFull(run: RunState): boolean {
@@ -132,7 +132,7 @@ export function removeItemByName(run: RunState, name: string) {
 }
 
 export function partyMods(run: RunState) {
-  return run.party.flatMap((c) => accessoryMods(c));
+  return run.party.flatMap((c) => characterMods(c));
 }
 
 // ───────────────────────── 値段 ─────────────────────────

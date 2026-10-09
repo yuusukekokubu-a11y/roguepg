@@ -569,7 +569,7 @@ button:focus-visible {
   box-shadow: inset 0 0 0 1px var(--gold);
 }
 .job-card > img.px {
-  grid-row: span 3;
+  grid-row: span 4;
 }
 .job-card .jname {
   display: flex;
@@ -580,6 +580,12 @@ button:focus-visible {
 .job-card .jname small {
   font-size: 0.62rem;
   color: var(--dim);
+}
+.trait {
+  font-size: 0.64rem;
+  color: var(--gold);
+  line-height: 1.4;
+  margin: 2px 0 0;
 }
 .job-card .jdesc {
   font-size: 0.66rem;

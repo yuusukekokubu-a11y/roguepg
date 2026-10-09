@@ -20,7 +20,7 @@ import { STAT_LABEL } from '../../engine/types';
 import type { App } from '../app';
 import { entryIcon, icon, jobArt } from '../art';
 import { ask, bar, choose, h, toast } from '../dom';
-import { entryDetail, entryTitle, isRare, skillLine, statsText } from '../describe';
+import { entryDetail, entryTitle, isRare, skillLine, statsText, traitLine } from '../describe';
 
 /** 上の帯：場所・お金・持ち物・メニュー */
 export function topBar(app: App, onChange?: () => void, opts: { menu?: boolean } = {}) {
@@ -133,6 +133,7 @@ function characterPanel(run: RunState, c: Character, rerender: () => void) {
         { style: 'flex:1;min-width:0' },
         h('h3', null, `${c.isHero ? '主人公' : c.name} Lv${c.level}`),
         h('p', null, `${job.name}・${job.lineage}・${job.role}`),
+        traitLine(c.job),
         bar(c.hp, st.hp, 'hp'),
         bar(c.mp, st.mp, 'mp'),
         bar(c.exp, next, 'exp'),

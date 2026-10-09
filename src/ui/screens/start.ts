@@ -7,7 +7,7 @@ import { STATS, STAT_LABEL } from '../../engine/types';
 import { resumeScreen, type App } from '../app';
 import { floorBackground, icon, jobArt } from '../art';
 import { ask, h } from '../dom';
-import { skillLine } from '../describe';
+import { skillLine, traitLine } from '../describe';
 
 export function titleScreen(app: App) {
   const saved = loadRun();
@@ -91,6 +91,7 @@ export function jobsScreen(app: App) {
               STATS.map((s) => h('span', { class: `grade ${GRADE_CLASS[j.grades[s]]}`, title: `${STAT_LABEL[s]} ${st[s]}` }, h('b', null, STAT_LABEL[s]), j.grades[s])),
             ),
             h('div', { class: 'jdesc' }, `${j.comment}　`, ARCHETYPES.filter((a) => a.job === j.name).map((a) => a.name).join('／')),
+            traitLine(j.name),
           );
         }),
       ),
@@ -108,7 +109,7 @@ export function starterScreen(app: App, screen: { job: string }) {
     h(
       'div',
       { class: 'win' },
-      h('div', { class: 'char-head' }, jobArt(job.name, 56), h('div', null, h('h3', null, job.name), h('p', null, `${job.lineage}・${job.role}　${job.comment}`))),
+      h('div', { class: 'char-head' }, jobArt(job.name, 56), h('div', null, h('h3', null, job.name), h('p', null, `${job.lineage}・${job.role}　${job.comment}`), traitLine(job.name))),
     ),
     h('p', { class: 'win-sub' }, 'どの方向性から始めるかを選ぶ。ほかの本はダンジョンで集める。'),
     h(

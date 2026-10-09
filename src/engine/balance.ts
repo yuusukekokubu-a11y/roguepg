@@ -64,6 +64,34 @@ export const BALANCE = {
     weakDamageMul: 1.5,
   },
 
+  /** 敵の強さの層ごとの倍率（全体の難しさのつまみ。atk は魔力にも掛かる） */
+  enemyScale: {
+    1: { hp: 1.05, atk: 1.05 },
+    2: { hp: 1.08, atk: 1.06 },
+    3: { hp: 1.1, atk: 1.08 },
+    4: { hp: 1.1, atk: 1.08 },
+  } as Record<number, { hp: number; atk: number }>,
+  /** 2層以降のボスだけにさらに掛ける倍率（消耗戦より山場で難しくする） */
+  bossScale: { hp: 1.15, atk: 1.08 },
+
+  /** 騎士・盗賊などの技に関わる倍率（職業ごとの差を縮めるための調整） */
+  skill: {
+    /** 「防御力が高いほど威力アップ」：1 + 防御 / この値 */
+    defHighDiv: 15,
+    /** 「自分のHPが減っているほど威力アップ」：1 + 減った割合 × この値 */
+    selfHpLowMul: 2.0,
+    /** 「毒の敵に威力アップ」「毒の敵なら威力特大」 */
+    poisonedMul: 1.8,
+    poisonedHugeMul: 2.6,
+    /** 味方の反撃の威力（通常攻撃＝1.0） */
+    counterPower: 1.4,
+    /** 味方がかばったとき・挑発中に受けるダメージの倍率 */
+    coverDamageMul: 0.7,
+    tauntDamageMul: 0.8,
+    /** 盗む・大泥棒の成功率 */
+    stealChance: { normal: 0.9, rare: 0.75 },
+  },
+
   /** 行動順：行動するたびに TIME_BASE / 素早さ だけ待ち時間が増える */
   timeBase: 1000,
   hasteRatio: 0.5,

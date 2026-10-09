@@ -11,7 +11,7 @@ import { starterBooks } from '../src/engine/run';
 describe('企画書のデータ', () => {
   it('企画書どおりの数がそろっている', () => {
     expect(JOBS).toHaveLength(14);
-    expect(SKILLS).toHaveLength(210);
+    expect(SKILLS).toHaveLength(215);
     expect(SKILLS.filter((s) => s.rare)).toHaveLength(42);
     expect(ACCESSORIES).toHaveLength(66);
     expect(ACCESSORIES.filter((a) => a.rare)).toHaveLength(9);
@@ -82,5 +82,16 @@ describe('効果の読み取り', () => {
 
   it('知らない言い回しはエラーにする', () => {
     expect(() => parseAction('すごいビーム')).toThrow();
+  });
+});
+
+describe('職業の特性と追加の本', () => {
+  it('全職業に特性があり、回復手段のなかった職業に回復系の本がある', async () => {
+    const { JOB_TRAITS } = await import('../src/data/jobTraits');
+    for (const j of JOBS) expect(JOB_TRAITS[j.name], j.name).toBeDefined();
+    for (const job of ['侍', '黒魔道士', '呪術師', '盗賊', '狩人']) {
+      const heals = SKILLS.filter((s) => s.job === job && s.effects.some((e) => e.kind === 'heal' || (e.kind === 'damage' && e.lifesteal)));
+      expect(heals.length, job).toBeGreaterThan(0);
+    }
   });
 });

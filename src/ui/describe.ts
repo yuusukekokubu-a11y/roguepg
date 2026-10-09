@@ -1,7 +1,9 @@
 // 持ち物・技などの説明文を作る。
 
 import { ACCESSORY_BY_NAME, ITEM_BY_NAME, SKILL_BY_NAME, type SkillDef } from '../data';
+import { JOB_TRAITS } from '../data/jobTraits';
 import { equipmentDef, type InvEntry } from '../engine/run';
+import { h } from './dom';
 import { STAT_LABEL, type Cost, type Stat, type TargetKind } from '../engine/types';
 
 export const TARGET_LABEL: Record<TargetKind, string> = {
@@ -65,4 +67,10 @@ export function entryDetail(e: InvEntry): string {
       return `${a.text}${drawback}`;
     }
   }
+}
+
+/** 職業の特性の1行 */
+export function traitLine(job: string): HTMLElement | null {
+  const t = JOB_TRAITS[job];
+  return t ? h('p', { class: 'trait' }, `特性「${t.name}」${t.text}`) : null;
 }

@@ -9,6 +9,7 @@ import floorsJson from './generated/floors.json';
 import { parseAction, parseCost, parseTarget } from '../engine/parser';
 import type { Condition, Cost, Effect, Stat, TargetKind } from '../engine/types';
 import { ACCESSORY_MODS, type AccessoryMod } from './accessoryMods';
+import { EXTRA_BOOKS } from './jobTraits';
 import type { Lineage } from './equipment';
 
 export type Grade = '◎' | '○' | '△' | '×';
@@ -87,7 +88,7 @@ export const JOB_BY_NAME = new Map(JOBS.map((j) => [j.name, j]));
 
 export const ARCHETYPES = archetypesJson.map((a) => ({ job: a.job, name: a.name, description: a.description }));
 
-export const SKILLS: SkillDef[] = booksJson.map((b) => {
+export const SKILLS: SkillDef[] = [...booksJson, ...EXTRA_BOOKS].map((b) => {
   const parsed = parseAction(b.effect);
   return {
     name: b.name,

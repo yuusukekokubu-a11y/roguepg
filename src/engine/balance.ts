@@ -118,7 +118,7 @@ export const BALANCE = {
   price: {
     item: { 安い: 15, 普通: 35, 高い: 70, とても高い: 140 } as Record<string, number>,
     book: { 通常: 45, レア: 120 },
-    equipment: [40, 80, 140, 220],
+    equipment: [40, 80, 140, 220, 320],
     accessory: { 通常: 70, レア: 160 },
     sellRatio: 0.5,
   },

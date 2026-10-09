@@ -1861,3 +1861,15 @@ button:focus-visible {
   color: var(--dim);
   border-style: dashed;
 }
+
+/* 装備が誰の強化になるか */
+.equip-hint {
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+.equip-hint.up {
+  color: var(--good);
+}
+.equip-hint.none {
+  color: var(--dim);
+}

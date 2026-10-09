@@ -65,7 +65,7 @@ describe('企画書のデータ', () => {
   it('各系統に4段階の武器・防具がある', () => {
     for (const l of LINEAGES)
       for (const slot of ['weapon', 'armor'])
-        for (let t = 0; t < 4; t++) expect(EQUIPMENT.some((e) => e.lineage === l && e.slot === slot && e.tier === t), `${l}${slot}${t}`).toBe(true);
+        for (let t = 0; t <= 4; t++) expect(EQUIPMENT.some((e) => e.lineage === l && e.slot === slot && e.tier === t), `${l}${slot}${t}`).toBe(true);
   });
 });
 

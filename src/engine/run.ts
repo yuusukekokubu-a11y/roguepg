@@ -7,7 +7,7 @@ import { ENCOUNTERS, ENEMY_BY_NAME } from '../data/enemies';
 import { VARIANTS, VARIANT_CHANCE } from '../data/variants';
 import { REPLACED_BOOKS } from '../data/jobTraits';
 import { CURSE_POOL, ascensionRules } from '../data/ascension';
-import { EQUIPMENT, type EquipmentDef } from '../data/equipment';
+import { EQUIPMENT, MAX_TIER, type EquipmentDef } from '../data/equipment';
 import { BALANCE } from './balance';
 import { characterMods, characterStats, clampVitals, createCharacter, gainExp, levelUp, skillSlots, type Character } from './character';
 import { generateMap, nextChoices, findNode, type FloorMap, type MapNode } from './map';
@@ -186,11 +186,19 @@ function rollBook(run: RunState, rng: Rng, rareChance: number, partyRatio: numbe
   return rng.pick(SKILLS.filter((s) => s.job === job && s.rare === rare)).name;
 }
 
+/**
+ * 普通の戦闘・宝箱で出る装備の段階＝その層の数字（4層は3）。強敵・ショップの上の品は +1。
+ * 最初の装備は段階0、仲間は「前の層で拾える段階」で加わるので、拾った装備は必ず誰かの強化になりうる
+ */
+export function dropTier(run: RunState): number {
+  return Math.min(MAX_TIER - 1, run.floor);
+}
+
 function rollEquipment(run: RunState, rng: Rng, tier: number): string {
   // パーティーの系統の装備が出やすい
   const lineages = run.party.map((c) => JOB_BY_NAME.get(c.job)!.lineage);
   const lineage = rng.chance(0.7) ? rng.pick(lineages) : rng.pick(['剣士系', '魔法系', '技巧系', '支援系'] as const);
-  const pool = EQUIPMENT.filter((e) => e.lineage === lineage && e.tier === Math.min(3, tier));
+  const pool = EQUIPMENT.filter((e) => e.lineage === lineage && e.tier === Math.min(MAX_TIER, tier));
   return rng.pick(pool).name;
 }
 
@@ -286,7 +294,7 @@ export function battleRewards(run: RunState, kind: BattleKind, exp: number, gold
   }
   // 目利きの眼鏡：本の候補が1つ増える
   const bookUp = partyMods(run).some((m) => m.bookDropUp);
-  const tier = Math.max(0, run.floor - 1);
+  const tier = dropTier(run);
   const picks: RewardPick[] = [];
   if (kind === 'normal') {
     const options = rollOptions(run, rng, 3, [['book', 45], ['item', 25], ['equip', 20], ['acc', 10]], { rare: BALANCE.rareChance.normal, tier });
@@ -329,7 +337,7 @@ export function treasure(run: RunState): { gold: number; picks: RewardPick[] } {
   const rng = rngOf(run);
   const gold = rng.int(15, 30) * run.floor;
   run.gold += gold;
-  const tier = Math.max(0, run.floor - 1);
+  const tier = dropTier(run);
   const options = rollOptions(run, rng, 3, [['acc', 40], ['item', 40], ['equip', 20]], { rare: 0.15, tier });
   return { gold, picks: [{ title: '宝箱の中身を1つ選ぶ', options }] };
 }
@@ -377,7 +385,7 @@ export function openShop(run: RunState): ShopStock {
   const rareMul = rules(run).rareMul;
   while (books.size < 4) books.add(rollBook(run, rng, BALANCE.rareChance.shop * rareMul, BALANCE.shopPartyJobRatio));
   for (const b of books) goods.push({ kind: 'book', name: b });
-  const tier = Math.max(0, run.floor - 1);
+  const tier = dropTier(run);
   goods.push({ kind: 'equip', name: rollEquipment(run, rng, tier) });
   goods.push({ kind: 'equip', name: rollEquipment(run, rng, tier + 1) });
   goods.push({ kind: 'acc', name: rollAccessory(rng, 0.1 * rareMul) });
@@ -551,7 +559,8 @@ export function useFieldItem(run: RunState, invIndex: number, charId?: string): 
 
 // ───────────────────────── 層クリア・仲間 ─────────────────────────
 
-export function makeRecruits(run: RunState, gearTier = Math.min(3, run.floor)): Character[] {
+/** 仲間の候補。装備は「いまの層（＝加わる前の層）で拾える段階」。ラン開始の相棒は段階0 */
+export function makeRecruits(run: RunState, gearTier = dropTier(run)): Character[] {
   const rng = rngOf(run);
   const level = run.party.find((c) => c.isHero)!.level;
   const jobs = rng.sample(JOBS, 3);

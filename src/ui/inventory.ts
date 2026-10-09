@@ -3,7 +3,7 @@
 
 import { JOBS, SKILL_BY_NAME } from '../data';
 import { equipmentDef, type InvEntry, type InvKind, type RunState } from '../engine/run';
-import { entryDetail, entryTitle, isRare } from './describe';
+import { entryDetail, entryTitle, equipHint, isRare } from './describe';
 import { entryIcon } from './art';
 import { h } from './dom';
 
@@ -101,6 +101,7 @@ export function inventoryView(run: RunState, actions: (row: InvRow) => HTMLEleme
               null,
               h('div', { class: 'name' }, entryTitle(r.entry), r.count > 1 ? h('span', { class: 'count' }, ` ×${r.count}`) : null),
               h('div', { class: 'desc' }, entryDetail(r.entry)),
+              equipHint(run, r.entry),
             ),
             actions(r),
           ),

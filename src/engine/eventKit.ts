@@ -2,7 +2,7 @@
 // どの部品も、起きたことを説明する短い文章を返す。
 
 import { ACCESSORIES, ITEMS, JOB_BY_NAME, SKILLS } from '../data';
-import { EQUIPMENT } from '../data/equipment';
+import { EQUIPMENT, MAX_TIER } from '../data/equipment';
 import { characterStats, gainExp, type Character } from './character';
 import type { Rng } from './rng';
 import { addToInventory, type InvEntry, type RunState } from './run';
@@ -137,7 +137,7 @@ export function giveAccessory(run: RunState, rng: Rng, opts: { name?: string; ra
 /** そのキャラが装備できる、層に合った武器か防具 */
 export function giveGear(run: RunState, rng: Rng, c: Character, tierBonus = 1): string {
   const lineage = JOB_BY_NAME.get(c.job)!.lineage;
-  const tier = Math.min(3, run.floor - 1 + tierBonus);
+  const tier = Math.min(MAX_TIER, run.floor + tierBonus);
   const pool = EQUIPMENT.filter((e) => e.lineage === lineage && e.tier === tier);
   return give(run, { kind: 'equip', name: rng.pick(pool).name }, '装備');
 }

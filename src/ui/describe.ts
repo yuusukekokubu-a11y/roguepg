@@ -1,8 +1,8 @@
 // 持ち物・技などの説明文を作る。
 
-import { ACCESSORY_BY_NAME, ITEM_BY_NAME, SKILL_BY_NAME, type SkillDef } from '../data';
+import { ACCESSORY_BY_NAME, ITEM_BY_NAME, JOB_BY_NAME, SKILL_BY_NAME, type SkillDef } from '../data';
 import { JOB_TRAITS } from '../data/jobTraits';
-import { equipmentDef, type InvEntry } from '../engine/run';
+import { equipmentDef, type InvEntry, type RunState } from '../engine/run';
 import { h } from './dom';
 import { STAT_LABEL, type Cost, type Stat, type TargetKind } from '../engine/types';
 
@@ -73,4 +73,18 @@ export function entryDetail(e: InvEntry): string {
 export function traitLine(job: string): HTMLElement | null {
   const t = JOB_TRAITS[job];
   return t ? h('p', { class: 'trait' }, `特性「${t.name}」${t.text}`) : null;
+}
+
+/** 装備が、パーティーのだれの今の装備より強いか（「↑ 主人公・騎士」）。装備以外は null */
+export function equipHint(run: RunState, e: InvEntry): HTMLElement | null {
+  if (e.kind !== 'equip') return null;
+  const d = equipmentDef(e.name);
+  const users = run.party.filter((c) => JOB_BY_NAME.get(c.job)!.lineage === d.lineage);
+  if (users.length === 0) return h('div', { class: 'equip-hint none' }, `${d.lineage}の仲間がいない`);
+  const better = users.filter((c) => {
+    const cur = d.slot === 'weapon' ? c.weapon : c.armor;
+    return !cur || equipmentDef(cur).tier < d.tier;
+  });
+  if (better.length === 0) return h('div', { class: 'equip-hint none' }, '今の装備と同じか弱い');
+  return h('div', { class: 'equip-hint up' }, `↑ ${better.map((c) => (c.isHero ? '主人公' : c.name)).join('・')}より強い`);
 }

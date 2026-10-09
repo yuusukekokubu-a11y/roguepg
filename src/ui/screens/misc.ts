@@ -35,7 +35,7 @@ import { STATS, STAT_LABEL } from '../../engine/types';
 import { resumeScreen, type App } from '../app';
 import { entryIcon, floorBackground, icon, jobArt } from '../art';
 import { ask, choose, countUp, h, toast } from '../dom';
-import { entryDetail, entryTitle, isRare, skillLine, traitLine } from '../describe';
+import { entryDetail, entryTitle, equipHint, isRare, skillLine, traitLine } from '../describe';
 import type { IconName } from '../pixel/icons';
 import { inventoryView, markFresh } from '../inventory';
 import { recordClear } from '../../engine/progress';
@@ -107,6 +107,7 @@ function picksBlock(app: App, states: PickState[], rerender: () => void) {
                 entryIcon(e, 24),
                 h('div', { class: 'name' }, entryTitle(e)),
                 h('div', { class: 'desc' }, entryDetail(e)),
+                equipHint(run, e),
               ),
             ),
             h(
@@ -264,7 +265,7 @@ export function shopScreen(app: App) {
                   'li',
                   { class: `${isRare(g.entry) ? 'rare' : ''} ${g.sold ? 'sold' : ''}` },
                   entryIcon(g.entry, 18),
-                  h('div', null, h('div', { class: 'name' }, entryTitle(g.entry)), h('div', { class: 'desc' }, entryDetail(g.entry))),
+                  h('div', null, h('div', { class: 'name' }, entryTitle(g.entry)), h('div', { class: 'desc' }, entryDetail(g.entry)), equipHint(run, g.entry)),
                   g.sold
                     ? h('span', { class: 'taken' }, '売切')
                     : h(

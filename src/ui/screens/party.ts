@@ -30,7 +30,7 @@ export function topBar(app: App, onChange?: () => void, opts: { menu?: boolean }
   return h(
     'div',
     { class: 'topbar' },
-    h('span', { class: 'place' }, `${run.floor}層 ${floor.place}`),
+    h('span', { class: 'place' }, `${run.floor}層 ${floor.place}`, run.ascension ? h('span', { class: 'asc-chip', title: `アセンション${run.ascension}` }, `A${run.ascension}`) : null),
     h(
       'span',
       { class: 'right' },
@@ -188,7 +188,9 @@ function characterPanel(run: RunState, c: Character, rerender: () => void) {
             a ? h('span', { class: ACCESSORY_BY_NAME.get(a)!.rare ? 'rare-text' : '' }, a) : h('span', { class: 'muted' }, 'なし'),
             a ? h('small', null, ` ${entryDetail({ kind: 'acc', name: a })}`) : null,
           ),
-          a
+          a && c.cursed && i === 0
+            ? h('span', { class: 'pill weak', title: 'アセンション10段の呪い。外せない' }, '呪い')
+            : a
             ? h(
                 'button',
                 {
@@ -316,7 +318,8 @@ function actionButtons(run: RunState, index: number, rerender: () => void) {
             if (!who) return;
             const c = run.party.find((x) => x.id === who)!;
             let slot: 0 | 1 = c.accessories[0] === null ? 0 : c.accessories[1] === null ? 1 : 0;
-            if (c.accessories[0] && c.accessories[1]) {
+            if (c.cursed) slot = 1; // 呪いの枠は使えない
+            else if (c.accessories[0] && c.accessories[1]) {
               const s = await choose(
                 'どちらと付けかえる？',
                 ([0, 1] as const).map((i) => ({ label: c.accessories[i]!, value: i })),

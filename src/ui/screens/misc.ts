@@ -35,6 +35,8 @@ import { ask, choose, countUp, h, toast } from '../dom';
 import { entryDetail, entryTitle, isRare, skillLine, traitLine } from '../describe';
 import type { IconName } from '../pixel/icons';
 import { inventoryView, markFresh } from '../inventory';
+import { recordClear } from '../../engine/progress';
+import { ASCENSION_TEXT } from '../../data/ascension';
 import { partyGrid, topBar } from './party';
 
 /** 場面の絵：層の背景の上に、主役のドット絵を並べる */
@@ -618,6 +620,9 @@ export function endScreen(app: App) {
   const run = app.run!;
   const dead = run.result === 'dead';
   const hero = run.party[0];
+  const asc = run.ascension ?? 0;
+  // クリアしたら、その職業の次の段を解放する
+  const unlocked = dead ? null : recordClear(hero.job, asc);
   return h(
     'div',
     { class: 'screen' },
@@ -639,12 +644,13 @@ export function endScreen(app: App) {
       h(
         'ul',
         { class: 'howto', style: 'margin-top:8px' },
-        h('li', null, `到達：${run.floor}層「${FLOORS[run.floor - 1].place}」`),
+        h('li', null, `到達：${run.floor}層「${FLOORS[run.floor - 1].place}」${asc ? `（アセンション${asc}）` : ''}`),
         h('li', null, `主人公：${hero.job} Lv${hero.level}`),
         h('li', null, `戦闘：${run.log.battles}回（強敵 ${run.log.elites}）／倒した敵：${run.log.kills}体`),
         h('li', null, `パーティー：${run.party.map((c) => `${c.isHero ? '主人公' : c.name} Lv${c.level}`).join('、')}`),
         run.blessings?.length ? h('li', null, `加護：${run.blessings.join('、')}`) : null,
       ),
+      unlocked ? h('div', { class: 'asc-unlock' }, h('b', null, `アセンション${unlocked} 解放`), h('span', null, `${hero.job}で、次から「${ASCENSION_TEXT[unlocked - 1]}」が加わった段を選べる`)) : null,
     ),
     h(
       'button',

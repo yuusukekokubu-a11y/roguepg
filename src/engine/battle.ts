@@ -5,6 +5,7 @@
 
 import { ITEMS, JOB_BY_NAME, SKILL_BY_NAME, ITEM_BY_NAME, type SkillDef } from '../data';
 import type { AccessoryMod, AccCondition } from '../data/accessoryMods';
+import { ascensionRules } from '../data/ascension';
 import { ENEMY_BY_NAME, type EnemyAction, type EnemyDef } from '../data/enemies';
 import { VARIANT_BY_ID, VARIANT_REWARD, type VariantDef } from '../data/variants';
 import { BALANCE } from './balance';
@@ -109,6 +110,8 @@ export interface BattleHooks {
   breakAccessory(c: Character, name: string): void;
   /** パーティー全員にかかる加護 */
   blessings?: AccessoryMod[];
+  /** アセンションの段（敵の強さが変わる） */
+  ascension?: number;
 }
 
 export type BattleKind = 'normal' | 'elite' | 'boss';
@@ -223,7 +226,9 @@ export class Battle {
   private makeEnemyUnit(def: EnemyDef, label: string, variant?: VariantDef): Unit {
     const fl = BALANCE.enemyScale[def.floor] ?? { hp: 1, atk: 1 };
     const bs = def.kind === 'boss' && def.floor >= 2 ? BALANCE.bossScale : { hp: 1, atk: 1 };
-    const sc = { hp: fl.hp * bs.hp, atk: fl.atk * bs.atk };
+    const asc = ascensionRules(this.hooks.ascension ?? 0);
+    const am = def.kind === 'boss' ? asc.bossScale : def.kind === 'elite' ? asc.eliteScale : asc.normalScale;
+    const sc = { hp: fl.hp * bs.hp * am, atk: fl.atk * bs.atk * am };
     const base: Stats = { hp: Math.round(def.hp * sc.hp), mp: 99, atk: Math.round(def.atk * sc.atk), def: def.def, mag: Math.round(def.mag * sc.atk), spr: def.spr, spd: def.spd };
     for (const [k, v] of Object.entries(variant?.stats ?? {})) base[k as Stat] = Math.max(1, Math.round(base[k as Stat] * v));
     return {
@@ -1514,7 +1519,8 @@ export class Battle {
       if (u.char && u.char.hp <= 0 && ratio > 0) u.char.hp = Math.max(1, Math.round(characterStats(u.char).hp * ratio));
     }
     const defeated = this.units.filter((u) => u.side === 'enemy');
-    const vm = (u: Unit) => (u.variant ? VARIANT_REWARD : 1);
+    const vr = this.hooks.ascension ? ascensionRules(this.hooks.ascension).variantReward : VARIANT_REWARD;
+    const vm = (u: Unit) => (u.variant ? vr : 1);
     const exp = Math.round(defeated.reduce((a, u) => a + (u.enemy?.exp ?? 0) * vm(u), 0) * this.rewardMul);
     let gold = defeated.reduce((a, u) => a + (u.enemy?.gold ?? 0) * vm(u), 0) * this.rewardMul;
     const goldMul = this.units.filter((u) => u.side === 'player').reduce((a, u) => a * u.mods.reduce((b, m) => b * (m.goldMul ?? 1), 1), 1);

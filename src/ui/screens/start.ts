@@ -6,8 +6,10 @@ import { clearSave, loadRun, newRun, starterBooks } from '../../engine/run';
 import { STATS, STAT_LABEL } from '../../engine/types';
 import { resumeScreen, type App } from '../app';
 import { floorBackground, icon, jobArt } from '../art';
-import { ask, h } from '../dom';
+import { ask, choose, h } from '../dom';
 import { skillLine, traitLine } from '../describe';
+import { ASCENSION_TEXT, MAX_ASCENSION } from '../../data/ascension';
+import { unlockedAscension } from '../../engine/progress';
 
 export function titleScreen(app: App) {
   const saved = loadRun();
@@ -84,7 +86,13 @@ export function jobsScreen(app: App) {
             'button',
             { class: 'job-card', onclick: () => app.go({ name: 'starter', job: j.name }) },
             jobArt(j.name, 44),
-            h('div', { class: 'jname' }, j.name, h('small', null, `${j.lineage}・${j.role}`)),
+            h(
+              'div',
+              { class: 'jname' },
+              j.name,
+              h('small', null, `${j.lineage}・${j.role}`),
+              unlockedAscension(j.name) > 0 ? h('span', { class: 'asc-chip', title: '解放済みのアセンション' }, `A${unlockedAscension(j.name)}`) : null,
+            ),
             h(
               'div',
               { class: 'grades' },
@@ -99,17 +107,62 @@ export function jobsScreen(app: App) {
   );
 }
 
+/** 職業ごとに、最後に選んだアセンションの段を覚えておく（はじめは解放済みの一番上） */
+const chosenAsc = new Map<string, number>();
+
+/** アセンションの段を選ぶ行 */
+function ascensionPicker(job: string, rerender: () => void) {
+  const max = unlockedAscension(job);
+  if (max === 0) return h('p', { class: 'asc-note' }, `${job}でクリアすると、アセンション（一段上の難しさ）が解放される`);
+  const lv = Math.min(max, chosenAsc.get(job) ?? max);
+  const set = (n: number) => {
+    chosenAsc.set(job, Math.max(0, Math.min(max, n)));
+    rerender();
+  };
+  return h(
+    'div',
+    { class: 'asc-picker' },
+    h('span', { class: 'asc-label' }, 'アセンション'),
+    h('button', { class: 'btn small', disabled: lv <= 0, onclick: () => set(lv - 1) }, '◀'),
+    h('b', { class: 'asc-num' }, lv === 0 ? '通常' : `${lv}`),
+    h('button', { class: 'btn small', disabled: lv >= max, onclick: () => set(lv + 1) }, '▶'),
+    h('small', { class: 'muted' }, `解放 ${max}/${MAX_ASCENSION}`),
+    h(
+      'button',
+      {
+        class: 'btn small',
+        disabled: lv === 0,
+        onclick: () =>
+          choose(
+            `アセンション${lv}の条件`,
+            ASCENSION_TEXT.slice(0, lv).map((t, i) => ({ label: `${i + 1}. ${t}`, value: i })),
+            '上の段は、下の段の条件をすべて引き継ぐ。',
+          ),
+      },
+      '条件',
+    ),
+    lv > 0 ? h('p', { class: 'asc-note' }, `${lv}段：${ASCENSION_TEXT[lv - 1]}${lv > 1 ? ` ほか${lv - 1}つ` : ''}`) : null,
+  );
+}
+
 export function starterScreen(app: App, screen: { job: string }) {
   const job = JOB_BY_NAME.get(screen.job)!;
   const books = starterBooks(job.name);
-  return h(
-    'div',
-    { class: 'screen' },
+  const root = h('div', { class: 'screen' });
+  const render = () => root.replaceChildren(...starterContent(app, job, books, render));
+  render();
+  return root;
+}
+
+function starterContent(app: App, job: NonNullable<ReturnType<typeof JOB_BY_NAME.get>>, books: string[], rerender: () => void): HTMLElement[] {
+  const asc = Math.min(unlockedAscension(job.name), chosenAsc.get(job.name) ?? unlockedAscension(job.name));
+  return [
     h('div', { class: 'map-head' }, h('h2', null, '最初に覚える技'), h('button', { class: 'btn small', onclick: () => app.go({ name: 'jobs' }) }, 'もどる')),
     h(
       'div',
       { class: 'win' },
       h('div', { class: 'char-head' }, jobArt(job.name, 56), h('div', null, h('h3', null, job.name), h('p', null, `${job.lineage}・${job.role}　${job.comment}`), traitLine(job.name))),
+      ascensionPicker(job.name, rerender),
     ),
     h('p', { class: 'win-sub' }, 'どの方向性から始めるかを選ぶ。ほかの本はダンジョンで集める。'),
     h(
@@ -126,7 +179,7 @@ export function starterScreen(app: App, screen: { job: string }) {
             {
               class: 'pick-card',
               onclick: () => {
-                app.run = newRun(job.name, name);
+                app.run = newRun(job.name, name, undefined, asc);
                 app.save();
                 app.go({ name: 'recruit' });
               },
@@ -139,5 +192,5 @@ export function starterScreen(app: App, screen: { job: string }) {
         }),
       ),
     ),
-  );
+  ];
 }

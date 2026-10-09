@@ -6,6 +6,7 @@ import { BLESSINGS, BLESSING_BY_NAME } from '../data/blessings';
 import { ENCOUNTERS, ENEMY_BY_NAME } from '../data/enemies';
 import { VARIANTS, VARIANT_CHANCE } from '../data/variants';
 import { REPLACED_BOOKS } from '../data/jobTraits';
+import { CURSE_POOL, ascensionRules } from '../data/ascension';
 import { EQUIPMENT, type EquipmentDef } from '../data/equipment';
 import { BALANCE } from './balance';
 import { characterMods, characterStats, clampVitals, createCharacter, gainExp, levelUp, skillSlots, type Character } from './character';
@@ -40,6 +41,8 @@ export interface RunState {
   blessingChoices?: string[];
   /** 受けている加護 */
   blessings?: string[];
+  /** アセンションの段（0 = 通常） */
+  ascension?: number;
   /** このランで起きたイベント（同じイベントは二度起きない） */
   seenEvents?: string[];
   result?: 'dead' | 'clear';
@@ -80,10 +83,11 @@ function starterGear(c: Character, tier = 0) {
   c.mp = st.mp;
 }
 
-export function newRun(job: string, starterBook: string, seed = Math.floor(Math.random() * 2 ** 31)): RunState {
+export function newRun(job: string, starterBook: string, seed = Math.floor(Math.random() * 2 ** 31), ascension = 0): RunState {
   const hero = createCharacter(job, 1, true, '主人公');
   hero.skills.push(starterBook);
   starterGear(hero);
+  const asc = ascensionRules(ascension);
   const run: RunState = {
     version: 1,
     seed,
@@ -93,16 +97,27 @@ export function newRun(job: string, starterBook: string, seed = Math.floor(Math.
     current: null,
     visited: [],
     party: [hero],
-    gold: BALANCE.startGold,
+    gold: Math.round(BALANCE.startGold * asc.startGoldMul),
+    ascension,
     inventory: [
       { kind: 'item', name: '薬草' },
       { kind: 'item', name: '薬草' },
     ],
     log: { battles: 0, kills: 0, elites: 0 },
   };
-  run.map = generateMap(rngOf(run));
+  run.map = generateMap(rngOf(run), asc.eliteWeightMul);
+  // 10段：主人公が外せない呪いのアクセサリーを着けて始まる
+  if (asc.cursed) {
+    hero.accessories[0] = rngOf(run).pick(CURSE_POOL);
+    hero.cursed = hero.accessories[0];
+  }
   offerPartner(run);
   return run;
+}
+
+/** このランのアセンションの条件 */
+export function rules(run: RunState) {
+  return ascensionRules(run.ascension ?? 0);
 }
 
 // ───────────────────────── 持ち物 ─────────────────────────
@@ -154,7 +169,7 @@ export function basePrice(e: InvEntry): number {
 
 export function buyPrice(run: RunState, e: InvEntry): number {
   const discount = partyMods(run).reduce((a, m) => a + (m.shopDiscount ?? 0), 0);
-  return Math.max(1, Math.round(basePrice(e) * (1 - Math.min(0.5, discount))));
+  return Math.max(1, Math.round(basePrice(e) * rules(run).priceMul * (1 - Math.min(0.5, discount))));
 }
 
 export function sellPrice(run: RunState, e: InvEntry): number {
@@ -217,7 +232,7 @@ export function encounterFor(run: RunState, node: MapNode): Encounter {
   const enemies = rng.pick(list);
   const kind: BattleKind = node.type === 'boss' ? 'boss' : node.type === 'elite' ? 'elite' : 'normal';
   // 普通の敵は、ときどき変異個体になる
-  const chance = VARIANT_CHANCE[run.floor] ?? 0;
+  const chance = (VARIANT_CHANCE[run.floor] ?? 0) * rules(run).variantMul;
   const variants = enemies.map((n) => (ENEMY_BY_NAME.get(n)?.kind === 'normal' && rng.chance(chance) ? rng.pick(VARIANTS).id : null));
   return { enemies, kind, variants };
 }
@@ -242,6 +257,7 @@ type Kind = InvEntry['kind'];
 /** 種類の重みに従って、名前がかぶらない候補を n 個作る */
 function rollOptions(run: RunState, rng: Rng, n: number, weights: [Kind, number][], opts: { rare: number; tier: number; partyRatio?: number }): InvEntry[] {
   const out: InvEntry[] = [];
+  opts = { ...opts, rare: opts.rare * rules(run).rareMul };
   for (let tries = 0; out.length < n && tries < 50; tries++) {
     const kind = rng.weighted(weights);
     const name =
@@ -292,11 +308,12 @@ export function battleRewards(run: RunState, kind: BattleKind, exp: number, gold
 // ───────────────────────── 休憩所・宝箱 ─────────────────────────
 
 export function rest(run: RunState) {
+  const ratio = BALANCE.restRatio * rules(run).restMul;
   for (const c of run.party) {
     const st = characterStats(c);
-    if (c.hp <= 0) c.hp = Math.round(st.hp * BALANCE.restRatio);
-    else c.hp = Math.min(st.hp, c.hp + Math.round(st.hp * BALANCE.restRatio));
-    c.mp = Math.min(st.mp, c.mp + Math.round(st.mp * BALANCE.restRatio));
+    if (c.hp <= 0) c.hp = Math.round(st.hp * ratio);
+    else c.hp = Math.min(st.hp, c.hp + Math.round(st.hp * ratio));
+    c.mp = Math.min(st.mp, c.mp + Math.round(st.mp * ratio));
   }
 }
 
@@ -357,13 +374,14 @@ export function openShop(run: RunState): ShopStock {
   const rng = rngOf(run);
   const goods: InvEntry[] = [];
   const books = new Set<string>();
-  while (books.size < 4) books.add(rollBook(run, rng, BALANCE.rareChance.shop, BALANCE.shopPartyJobRatio));
+  const rareMul = rules(run).rareMul;
+  while (books.size < 4) books.add(rollBook(run, rng, BALANCE.rareChance.shop * rareMul, BALANCE.shopPartyJobRatio));
   for (const b of books) goods.push({ kind: 'book', name: b });
   const tier = Math.max(0, run.floor - 1);
   goods.push({ kind: 'equip', name: rollEquipment(run, rng, tier) });
   goods.push({ kind: 'equip', name: rollEquipment(run, rng, tier + 1) });
-  goods.push({ kind: 'acc', name: rollAccessory(rng, 0.1) });
-  goods.push({ kind: 'acc', name: rollAccessory(rng, 0.1) });
+  goods.push({ kind: 'acc', name: rollAccessory(rng, 0.1 * rareMul) });
+  goods.push({ kind: 'acc', name: rollAccessory(rng, 0.1 * rareMul) });
   goods.push({ kind: 'item', name: '薬草' });
   goods.push({ kind: 'item', name: '魔力の水' });
   for (let i = 0; i < 3; i++) goods.push({ kind: 'item', name: rollItem(rng, 0.1) });
@@ -463,6 +481,7 @@ export function equip(run: RunState, invIndex: number, charId: string, accSlot: 
     else c.armor = d.name;
     if (old) run.inventory.push({ kind: 'equip', name: old });
   } else if (e.kind === 'acc') {
+    if (c.cursed && accSlot === 0) return '呪われていて付け替えられない';
     removeFromInventory(run, invIndex);
     const old = c.accessories[accSlot];
     c.accessories[accSlot] = e.name;
@@ -475,6 +494,7 @@ export function equip(run: RunState, invIndex: number, charId: string, accSlot: 
 export function unequipAccessory(run: RunState, charId: string, slot: 0 | 1): string | null {
   const c = run.party.find((x) => x.id === charId);
   if (!c || !c.accessories[slot]) return '外すものがありません';
+  if (c.cursed && slot === 0) return '呪われていて外せない';
   if (inventoryFull(run)) return '持ち物がいっぱいです';
   run.inventory.push({ kind: 'acc', name: c.accessories[slot]! });
   c.accessories[slot] = null;
@@ -537,7 +557,15 @@ export function makeRecruits(run: RunState, gearTier = Math.min(3, run.floor)): 
 }
 
 export function bossCleared(run: RunState) {
-  fullRecover(run);
+  // 8段からは半分だけ回復（倒れた仲間は起き上がる）
+  const heal = rules(run).bossHeal;
+  if (heal >= 1) fullRecover(run);
+  else
+    for (const c of run.party) {
+      const st = characterStats(c);
+      c.hp = Math.min(st.hp, c.hp + Math.round(st.hp * heal));
+      c.mp = Math.min(st.mp, c.mp + Math.round(st.mp * heal));
+    }
   if (run.floor >= FINAL_FLOOR) {
     run.result = 'clear';
     return;
@@ -592,7 +620,7 @@ function nextFloor(run: RunState) {
   run.current = null;
   run.visited = [];
   run.shop = undefined;
-  run.map = generateMap(rngOf(run));
+  run.map = generateMap(rngOf(run), rules(run).eliteWeightMul);
 }
 
 export function isPartyDead(run: RunState) {
@@ -614,6 +642,7 @@ export function battleHooks(run: RunState, rng: Rng = rngOf(run)): BattleHooks {
       if (i >= 0) c.accessories[i] = null;
     },
     blessings: (run.blessings ?? []).map((n) => BLESSING_BY_NAME.get(n)!.mod),
+    ascension: run.ascension ?? 0,
   };
 }
 

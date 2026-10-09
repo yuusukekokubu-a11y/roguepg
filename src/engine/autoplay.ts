@@ -137,9 +137,9 @@ export interface SimResult {
   level: number;
 }
 
-export function simulateRun(job: string, seed: number): SimResult {
+export function simulateRun(job: string, seed: number, ascension = 0): SimResult {
   const rng0 = new Rng(seed);
-  const run = newRun(job, rng0.pick(starterBooks(job)), seed);
+  const run = newRun(job, rng0.pick(starterBooks(job)), seed, ascension);
   const rng = new Rng(seed + 1);
   choosePartner(run, rng.int(0, 2));
   return playRun(run, rng);

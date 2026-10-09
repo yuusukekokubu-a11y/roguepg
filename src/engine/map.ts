@@ -42,7 +42,8 @@ export const MAP_CONFIG = {
 
 const id = (r: number, c: number) => `${r}-${c}`;
 
-export function generateMap(rng: Rng): FloorMap {
+/** eliteWeightMul：強敵マスの出やすさの倍率（アセンション用） */
+export function generateMap(rng: Rng, eliteWeightMul = 1): FloorMap {
   const { rows, cols, paths } = MAP_CONFIG;
   const edges = new Set<string>(); // "r-c>r-c"
   const cells = new Set<string>();
@@ -87,7 +88,8 @@ export function generateMap(rng: Rng): FloorMap {
     else if (n.row === Math.floor(rows / 2)) n.type = 'treasure';
     else {
       const ps = parents.get(n.id) ?? [];
-      const options = (Object.entries(MAP_CONFIG.weights) as [Exclude<NodeType, 'boss'>, number][]).filter(([t]) => {
+      const weights = (Object.entries(MAP_CONFIG.weights) as [Exclude<NodeType, 'boss'>, number][]).map(([t, w]) => [t, t === 'elite' ? w * eliteWeightMul : w] as [Exclude<NodeType, 'boss'>, number]);
+      const options = weights.filter(([t]) => {
         if (t === 'elite' && n.row < MAP_CONFIG.eliteMinRow) return false;
         if (t === 'shop' && n.row < MAP_CONFIG.shopMinRow) return false;
         if (t === 'rest' && (n.row < MAP_CONFIG.restMinRow || n.row === rows - 2)) return false;

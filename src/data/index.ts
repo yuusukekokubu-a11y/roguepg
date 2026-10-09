@@ -10,6 +10,7 @@ import { parseAction, parseCost, parseTarget } from '../engine/parser';
 import type { Condition, Cost, Effect, Stat, TargetKind } from '../engine/types';
 import { ACCESSORY_MODS, type AccessoryMod } from './accessoryMods';
 import { EXTRA_BOOKS, REPLACED_BOOKS } from './jobTraits';
+import { CURSES } from './ascension';
 import type { Lineage } from './equipment';
 
 export type Grade = '◎' | '○' | '△' | '×';
@@ -118,7 +119,9 @@ export const ACCESSORIES: AccessoryDef[] = accessoriesJson.map((a) => {
     mod,
   };
 });
-export const ACCESSORY_BY_NAME = new Map(ACCESSORIES.map((a) => [a.name, a]));
+// 呪い（アセンション10段）は、名前から引けるようにだけしておく（戦利品・ショップには出ない）
+const CURSE_DEFS: AccessoryDef[] = CURSES.map((c) => ({ name: c.name, category: '呪い', rare: false, text: '外せない呪い', drawback: c.text, synergy: '—', mod: c.mod }));
+export const ACCESSORY_BY_NAME = new Map([...ACCESSORIES, ...CURSE_DEFS].map((a) => [a.name, a]));
 
 export const ITEMS: ItemDef[] = itemsJson.map((i) => ({
   name: i.name,

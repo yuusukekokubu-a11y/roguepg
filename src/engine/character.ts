@@ -19,6 +19,8 @@ export interface Character {
   weapon: string | null;
   armor: string | null;
   accessories: [string | null, string | null];
+  /** 外せない呪いのアクセサリー（アセンション10段） */
+  cursed?: string;
   row: 'front' | 'back';
   isHero: boolean;
   /** イベントなどで永久に上がった能力値 */

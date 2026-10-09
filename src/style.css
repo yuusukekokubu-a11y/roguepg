@@ -1406,3 +1406,179 @@ button:focus-visible {
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
+
+/* ───────── 戦闘の演出 ───────── */
+.screen.battle {
+  position: relative;
+}
+.fx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 20;
+}
+/* ダメージ・回復の数字 */
+.pop {
+  position: absolute;
+  transform: translate(-50%, 0);
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #fff3e6;
+  text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000;
+  animation: pop-up 1s ease-out both;
+  white-space: nowrap;
+}
+.pop.dmg {
+  color: #ff8a7a;
+}
+.pop.heal {
+  color: #8ff0a4;
+}
+.pop.miss {
+  color: var(--dim);
+  font-size: 0.9rem;
+}
+@keyframes pop-up {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.7);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -6px) scale(1.25);
+  }
+  30% {
+    transform: translate(-50%, -10px) scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -26px);
+  }
+}
+/* 技の名前 */
+.action-banner {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  transform: translateX(-50%);
+  padding: 4px 16px;
+  background: rgba(8, 7, 11, 0.88);
+  box-shadow: inset 0 0 0 1px var(--rule), 0 0 0 1px #000;
+  color: var(--gold);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  animation: banner-in 1.1s ease-out both;
+}
+@keyframes banner-in {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -6px);
+  }
+  12%,
+  80% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+/* 行動したキャラ：敵は前（左下）へ踏み込む、仲間は持ち上がる */
+.foe.acting img.px {
+  animation: lunge 0.45s ease-out;
+}
+.foe.actor img.px,
+.foe.acting img.px {
+  filter: var(--tint, none) brightness(1.25);
+}
+@keyframes lunge {
+  40% {
+    transform: translate(-6px, 6px) scale(1.08);
+  }
+}
+.member.acting {
+  animation: lift 0.45s ease-out;
+}
+.member.actor,
+.member.acting {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+@keyframes lift {
+  40% {
+    transform: translateY(-5px);
+  }
+}
+/* 倒れた敵は沈みながら消える */
+.foe.dead.dying {
+  visibility: visible;
+}
+.foe.dying img.px {
+  animation: sink 0.6s ease-in both;
+}
+.foe.dying .plate,
+.foe.dying .intent {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+@keyframes sink {
+  0% {
+    filter: brightness(3);
+  }
+  30% {
+    filter: brightness(1.6) saturate(0);
+    transform: none;
+    opacity: 1;
+  }
+  100% {
+    filter: brightness(0.6) saturate(0);
+    transform: translateY(10px) scaleY(0.6);
+    opacity: 0;
+  }
+}
+/* 自分の番の合図 */
+.cmdwin.your-turn {
+  animation: turn-glow 0.7s ease-out;
+}
+@keyframes turn-glow {
+  0% {
+    box-shadow: inset 0 0 0 2px var(--gold), 0 0 14px rgba(212, 168, 74, 0.7);
+  }
+  100% {
+    box-shadow: inset 0 0 0 2px var(--rule), 0 0 0 rgba(212, 168, 74, 0);
+  }
+}
+.cmdwin.waiting .cmd-title {
+  color: var(--dim);
+}
+/* 戦闘後の「つぎへ」は少し遅れて出る（勝った瞬間の押し間違いを防ぐ） */
+.btn.appear {
+  animation: appear 0.9s steps(1, end) both, fade-in 0.3s 0.9s ease-out both;
+}
+@keyframes appear {
+  0% {
+    visibility: hidden;
+  }
+  100% {
+    visibility: visible;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pop,
+  .action-banner,
+  .foe.acting img.px,
+  .member.acting,
+  .foe.dying img.px,
+  .cmdwin.your-turn {
+    animation-duration: 0.01s;
+  }
+}

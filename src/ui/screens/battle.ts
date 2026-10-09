@@ -23,6 +23,16 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
   const run = app.run!;
   const battle = new Battle(run.party, screen.enemies, screen.kind, battleHooks(run), screen.variants ?? []);
   const root = h('div', { class: `screen battle ${screen.kind}` });
+  // 画面は render のたびに作り直すが、演出（数字・技名）は作り直さない層に出す
+  const content = h('div', { style: 'display:contents' });
+  const fx = h('div', { class: 'fx-layer', 'aria-hidden': 'true' });
+  root.append(content, fx);
+  let logSeen = 0;
+  let actorUid: number | null = null;
+  // 自分の番になった直後・戦闘が終わった直後は、少しのあいだタップを受け付けない（押し間違い防止）
+  let lockedUntil = 0;
+  let wasInput = false;
+  let endLocked = false;
   let mode: Mode = { kind: 'root' };
   let infoUid: number | null = null;
   const prevHp = new Map<number, number>();
@@ -34,10 +44,21 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
     if (mode.kind === 'target' && battle.current) {
       for (const u of battle.selectableTargets(battle.current, mode.target, mode.effects)) targetable.add(u.uid);
     }
+    // 新しく増えたログから「だれが・何をしたか」「だれがかわしたか」を拾う
+    const fresh = battle.log.slice(logSeen);
+    logSeen = battle.log.length;
+    const turn = [...fresh].reverse().find((l) => l.actor !== undefined);
+    const newActor = turn ? turn.actor! : null;
+    if (turn) actorUid = turn.actor!;
+    if (battle.phase !== 'running') actorUid = null;
+    const pops: { uid: number; text: string; cls: string }[] = [];
+    for (const l of fresh) if (l.miss !== undefined) pops.push({ uid: l.miss, text: 'MISS', cls: 'miss' });
     const changed = (u: Unit) => {
       const before = prevHp.get(u.uid) ?? u.hp;
       prevHp.set(u.uid, u.hp);
-      return before > u.hp ? 'hit' : before < u.hp ? 'healed' : '';
+      if (before !== u.hp) pops.push({ uid: u.uid, text: before > u.hp ? `${before - u.hp}` : `+${u.hp - before}`, cls: before > u.hp ? 'dmg' : 'heal' });
+      const acting = u.uid === newActor ? ' acting' : u.uid === actorUid ? ' actor' : '';
+      return (before > u.hp ? (u.hp <= 0 ? 'hit dying' : 'hit') : before < u.hp ? 'healed' : '') + acting;
     };
     const onUnit = (u: Unit) => () => {
       if (mode.kind === 'target' && targetable.has(u.uid)) return submit(mode.make(u.uid));
@@ -57,7 +78,7 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
       const intent = battle.describeIntent(u);
       return h(
         'button',
-        { class: cls, type: 'button', onclick: onUnit(u) },
+        { class: cls, type: 'button', onclick: onUnit(u), 'data-uid': u.uid },
         intent ? h('span', { class: `intent ${intent.kind}` }, intent.label) : null,
         art,
         h('span', { class: 'plate' }, h('span', { class: 'pname' }, u.name), bar(u.hp, battle.maxHp(u), 'hp', false), statusBadges(u).length ? h('span', { class: 'badges' }, statusBadges(u)) : null),
@@ -66,7 +87,16 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
     const infoUnit = enemies.find((u) => u.uid === infoUid && u.hp > 0);
 
     const order = battle.turnOrder(8);
-    root.replaceChildren(
+    const isInput = battle.phase === 'input';
+    const turnStart = isInput && !wasInput;
+    wasInput = isInput;
+    if (turnStart) lockedUntil = performance.now() + 350;
+    const ended = battle.phase === 'won' || battle.phase === 'lost' || battle.phase === 'escaped';
+    if (ended && !endLocked) {
+      endLocked = true;
+      lockedUntil = performance.now() + 900;
+    }
+    content.replaceChildren(
       topBar(app, undefined, { menu: false }),
       h(
         'div',
@@ -107,7 +137,7 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
             const cls = ['member', battle.current === u && battle.phase === 'input' ? 'active' : '', u.hp <= 0 ? 'down' : '', targetable.has(u.uid) ? 'targetable' : '', changed(u)].join(' ');
             return h(
               'div',
-              { class: cls, onclick: onUnit(u) },
+              { class: cls, onclick: onUnit(u), 'data-uid': u.uid },
               jobArt(u.char!.job, 28),
               h(
                 'div',
@@ -120,16 +150,60 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
             );
           }),
       ),
-      commandWindow(),
+      commandWindow(turnStart),
     );
+    showEffects(turn?.action, pops);
   };
 
-  const commandWindow = () => {
+  // 技の名前と、ダメージ・回復の数字を浮かべる
+  const showEffects = (action: string | undefined, pops: { uid: number; text: string; cls: string }[]) => {
+    if (!root.isConnected) return;
+    const base = root.getBoundingClientRect();
+    if (action) {
+      fx.querySelector('.action-banner')?.remove();
+      const stage = content.querySelector('.stage')?.getBoundingClientRect();
+      const banner = h('div', { class: 'action-banner' }, action);
+      if (stage) banner.style.top = `${stage.top - base.top + 8}px`;
+      fx.appendChild(banner);
+      setTimeout(() => banner.remove(), 1100);
+    }
+    pops.forEach((p, i) => {
+      const el = content.querySelector(`[data-uid="${p.uid}"]`);
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const pop = h('span', { class: `pop ${p.cls}` }, p.text);
+      // 仲間の欄では顔の上、敵は絵の真ん中に出す
+      const member = el.classList.contains('member');
+      pop.style.left = `${r.left - base.left + (member ? 22 : r.width / 2)}px`;
+      pop.style.top = `${r.top - base.top + Math.min(r.height * 0.35, 40)}px`;
+      pop.style.animationDelay = `${i * 60}ms`;
+      fx.appendChild(pop);
+      setTimeout(() => pop.remove(), 1100 + i * 60);
+    });
+  };
+  // 演出中・直後の誤タップを止める
+  root.addEventListener(
+    'click',
+    (e) => {
+      const inCmd = (e.target as HTMLElement).closest('.cmdwin, .sublist');
+      if (inCmd && (busy || performance.now() < lockedUntil)) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    },
+    true,
+  );
+
+  const commandWindow = (turnStart = false) => {
     if (battle.phase === 'won' || battle.phase === 'lost' || battle.phase === 'escaped') {
-      return h('div', { class: 'win cmdwin' }, h('button', { class: 'btn primary wide', onclick: finish }, 'つぎへ'));
+      return h('div', { class: 'win cmdwin' }, h('button', { class: 'btn primary wide appear', onclick: finish }, 'つぎへ'));
     }
     const u = battle.current;
-    if (battle.phase !== 'input' || !u) return h('div', { class: 'win cmdwin' }, h('div', { class: 'cmd-title' }, '……'));
+    if (battle.phase !== 'input' || !u) {
+      const actor = battle.units.find((x) => x.uid === actorUid);
+      const who = actor ? (actor.char?.isHero ? '主人公' : actor.name) : '';
+      return h('div', { class: 'win cmdwin waiting' }, h('div', { class: 'cmd-title' }, actor ? `${actor.side === 'enemy' ? '敵の番' : '行動中'}：${who}` : '……'));
+    }
     const who = u.char!.isHero ? '主人公' : u.name;
     const head = h(
       'div',
@@ -146,7 +220,7 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
     const extra = u.extraActions > 0;
     return h(
       'div',
-      { class: 'win cmdwin' },
+      { class: `win cmdwin ${turnStart ? 'your-turn' : ''}` },
       head,
       h(
         'div',
@@ -222,15 +296,16 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
     busy = true;
     render();
     while (battle.phase === 'running') {
-      const fresh = battle.log.length > shown;
+      const fresh = battle.log.slice(shown);
       shown = battle.log.length;
-      await sleep(fresh ? 520 : 60);
+      // 行動があったときは技名・数字が読めるように少し長めに待つ
+      await sleep(fresh.some((l) => l.kind === 'turn') ? 680 : fresh.length ? 520 : 60);
       battle.advance();
       render();
     }
     shown = battle.log.length;
     busy = false;
-    render();
+    // ここで描き直すと、倒れた敵が沈む演出の途中で消えてしまうので描き直さない（最後の render で状態は反映済み）
   };
 
   const finish = () => {

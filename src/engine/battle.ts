@@ -89,6 +89,12 @@ export type Command =
 export interface LogEntry {
   text: string;
   kind: 'info' | 'damage' | 'heal' | 'status' | 'turn' | 'system';
+  /** 行動したユニット（演出用） */
+  actor?: number;
+  /** 行動の名前（演出用。「たたかう」などは出さない） */
+  action?: string;
+  /** 攻撃をかわしたユニット（演出用） */
+  miss?: number;
 }
 
 export interface BattleHooks {
@@ -261,8 +267,8 @@ export class Battle {
 
   // ───────────────────────── 便利関数 ─────────────────────────
 
-  private push(text: string, kind: LogEntry['kind'] = 'info') {
-    this.log.push({ text, kind });
+  private push(text: string, kind: LogEntry['kind'] = 'info', fx: Pick<LogEntry, 'actor' | 'action' | 'miss'> = {}) {
+    this.log.push({ text, kind, ...fx });
   }
 
   alive(side?: Side): Unit[] {
@@ -375,7 +381,7 @@ export class Battle {
     if (u.delayed) {
       const d = u.delayed;
       u.delayed = undefined;
-      this.push(`${u.name} の ${d.name}！`, 'turn');
+      this.push(`${u.name} の ${d.name}！`, 'turn', { actor: u.uid, action: d.name });
       this.execute(u, { name: d.name, effects: d.effects, conditions: d.conditions, target: d.target, powerMul: d.powerMul }, d.targetUid);
       this.endTurn(u);
       this.checkEnd();
@@ -398,7 +404,7 @@ export class Battle {
     }
     if (u.mods.some((m) => m.attackOnly)) {
       const t = this.rng.pick(this.selectableTargets(u, 'enemy', [NORMAL_ATTACK]));
-      this.push(`${u.name} は暴れている！`, 'turn');
+      this.push(`${u.name} は暴れている！`, 'turn', { actor: u.uid });
       this.execute(u, { name: 'たたかう', effects: [NORMAL_ATTACK], conditions: [], target: 'enemy', isAttack: true }, t.uid);
       this.endTurn(u);
       this.checkEnd();
@@ -418,29 +424,29 @@ export class Battle {
     this.phase = 'running';
     switch (cmd.type) {
       case 'attack':
-        this.push(`${u.name} の攻撃！`, 'turn');
+        this.push(`${u.name} の攻撃！`, 'turn', { actor: u.uid });
         this.execute(u, { name: 'たたかう', effects: [NORMAL_ATTACK], conditions: [], target: 'enemy', isAttack: true }, cmd.target);
         break;
       case 'defend':
         u.extraActions = 0;
-        this.push(`${u.name} は身を守っている。`, 'turn');
+        this.push(`${u.name} は身を守っている。`, 'turn', { actor: u.uid, action: 'ぼうぎょ' });
         u.lingers.push({ kind: 'defend', turns: 1, sourceSide: u.side });
         break;
       case 'swap':
         u.row = u.row === 'front' ? 'back' : 'front';
-        this.push(`${u.name} は${u.row === 'front' ? '前列' : '後列'}に移動した。`, 'turn');
+        this.push(`${u.name} は${u.row === 'front' ? '前列' : '後列'}に移動した。`, 'turn', { actor: u.uid });
         this.fixRows();
         break;
       case 'skill': {
         const s = SKILL_BY_NAME.get(cmd.skill)!;
-        this.push(`${u.name} の ${s.name}！`, 'turn');
+        this.push(`${u.name} の ${s.name}！`, 'turn', { actor: u.uid, action: s.name });
         this.execute(u, skillSpec(s), cmd.target);
         break;
       }
       case 'item': {
         const it = ITEM_BY_NAME.get(cmd.item)!;
         this.hooks.removeItem(it.name);
-        this.push(`${u.name} は ${it.name} を使った！`, 'turn');
+        this.push(`${u.name} は ${it.name} を使った！`, 'turn', { actor: u.uid, action: it.name });
         this.execute(u, { name: it.name, effects: it.effects, conditions: [], target: it.target, isItem: true }, cmd.target);
         break;
       }
@@ -722,7 +728,7 @@ export class Battle {
     const { action } = intent;
     if (action.name === def.enrage) u.enrageUsed = true;
     else if ((u.phase2 && def.halfHp?.pattern) || def.pattern) u.patternIndex++;
-    this.push(`${u.name} の ${action.name}！`, 'turn');
+    this.push(`${u.name} の ${action.name}！`, 'turn', { actor: u.uid, action: action.name === 'たたかう' ? undefined : action.name });
     let target = intent.targetUid;
     // 狙っていた相手が倒れた・挑発された、などのときは狙い直す
     if (action.target === 'enemy') {
@@ -936,7 +942,7 @@ export class Battle {
 
   private counterAttack(t: Unit, attacker: Unit, status?: StatusId) {
     if (t.status.stun) return;
-    this.push(`${t.name} の反撃！`, 'turn');
+    this.push(`${t.name} の反撃！`, 'turn', { actor: t.uid, action: '反撃' });
     const mul = t.mods.reduce((a, m) => a * (m.counterMul ?? 1), t.side === 'player' ? BALANCE.skill.counterPower : 1);
     const effects: Effect[] = [NORMAL_ATTACK];
     if (status) effects.push({ kind: 'status', status, stacks: 1 });
@@ -1038,11 +1044,11 @@ export class Battle {
         dc.amount = -1; // 回避済み→あとで反撃
         ctx.hitUnits.add(t);
         ctx.dealtDamage = true;
-        this.push(`${t.name} は攻撃を見切った！`, 'info');
+        this.push(`${t.name} は攻撃を見切った！`, 'info', { miss: t.uid });
         return;
       }
       if (this.rng.chance(this.evasion(t))) {
-        this.push(`${t.name} はひらりとかわした！`, 'info');
+        this.push(`${t.name} はひらりとかわした！`, 'info', { miss: t.uid });
         return;
       }
     }

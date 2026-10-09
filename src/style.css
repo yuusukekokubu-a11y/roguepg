@@ -168,12 +168,12 @@ button:focus-visible {
   transform: translateY(1px);
 }
 .btn.primary {
-  color: var(--night);
-  background: var(--gold);
-  box-shadow: inset 0 0 0 1px #f0d48a, inset 0 -2px 0 #9a7a30;
+  color: #f3dc9a;
+  background: #3a2c12;
+  box-shadow: inset 0 0 0 2px var(--gold), inset 0 -3px 0 #241a08;
 }
 .btn.primary:hover:not(:disabled) {
-  background: #e0b858;
+  background: #4a3816;
 }
 .btn.danger {
   box-shadow: inset 0 0 0 1px var(--blood);
@@ -956,8 +956,9 @@ button:focus-visible {
   padding: 0 4px;
 }
 .pill.weak {
-  color: var(--night);
-  background: var(--weak);
+  color: #ffd2b0;
+  background: #6a2c10;
+  box-shadow: inset 0 0 0 1px var(--weak);
 }
 .pill.immune {
   color: var(--immune);
@@ -999,9 +1000,15 @@ button:focus-visible {
   animation: blink 0.8s steps(2) infinite;
   color: var(--gold);
 }
-.cmdwin {
+.cmdwin,
+.sublist {
   flex: none;
+  height: var(--cmd-h, 122px);
   padding: 7px 10px 8px;
+  overflow: hidden;
+}
+.cmdwin .btn.wide {
+  margin-top: 26px;
 }
 .cmd-title {
   display: flex;
@@ -1031,13 +1038,12 @@ button:focus-visible {
   color: var(--mp);
 }
 .sublist {
-  flex: none;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-height: 46vh;
 }
 .sublist .scroll {
+  flex: 1 1 0;
   min-height: 0;
 }
 .skill {
@@ -1289,6 +1295,9 @@ button:focus-visible {
   }
   .cmds .menu-item {
     padding-block: 4px;
+  }
+  :root {
+    --cmd-h: 106px;
   }
   .scene {
     height: 100px;

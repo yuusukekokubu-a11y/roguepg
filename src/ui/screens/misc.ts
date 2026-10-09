@@ -14,6 +14,8 @@ import {
   choosePartner,
   clearSave,
   inventoryFull,
+  inventoryLimit,
+  removeFromInventory,
   recruit,
   rest,
   sell,
@@ -40,10 +42,10 @@ function scene(floor: number, actors: HTMLElement[], kind?: { icon: IconName; la
   );
 }
 
-/** 拾える物の一覧（拾う・置いていく） */
-function dropsList(app: App, drops: InvEntry[], rerender: () => void, taken: Set<number>) {
+/** 拾える物の一覧。拾うと一覧から消えて、持ち物に移る */
+function dropsList(app: App, drops: InvEntry[], rerender: () => void) {
   const run = app.run!;
-  if (drops.length === 0) return h('p', { class: 'muted small' }, '拾える物はなかった。');
+  if (drops.length === 0) return h('p', { class: 'muted small' }, '拾える物はもうない。');
   return h(
     'ul',
     { class: 'list' },
@@ -53,34 +55,76 @@ function dropsList(app: App, drops: InvEntry[], rerender: () => void, taken: Set
         { class: isRare(d) ? 'rare' : '' },
         entryIcon(d, 18),
         h('div', null, h('div', { class: 'name' }, entryTitle(d)), h('div', { class: 'desc' }, entryDetail(d))),
-        taken.has(i)
-          ? h('span', { class: 'taken' }, '拾った')
-          : h(
-              'button',
-              {
-                class: 'btn small',
-                onclick: () => {
-                  if (!addToInventory(run, d)) return toast('持ち物がいっぱい。メニューから使うか捨てよう');
-                  taken.add(i);
-                  app.save();
-                  rerender();
-                },
-              },
-              inventoryFull(run) ? '満杯' : '拾う',
-            ),
+        h(
+          'button',
+          {
+            class: 'btn small',
+            disabled: inventoryFull(run),
+            onclick: () => {
+              if (!addToInventory(run, d)) return toast('持ち物がいっぱい。下の持ち物から捨てて空きを作ろう');
+              drops.splice(i, 1);
+              app.save();
+              rerender();
+            },
+          },
+          inventoryFull(run) ? '満杯' : '拾う',
+        ),
       ),
     ),
   );
 }
 
-function leaveButton(label: string, drops: InvEntry[], taken: Set<number>, go: () => void) {
+/** 今の持ち物（拾う画面で、空きを作るために捨てられる） */
+function inventoryList(app: App, rerender: () => void) {
+  const run = app.run!;
+  if (run.inventory.length === 0) return h('p', { class: 'muted small' }, '何も持っていない');
+  return h(
+    'ul',
+    { class: 'list' },
+    run.inventory.map((e, i) =>
+      h(
+        'li',
+        { class: isRare(e) ? 'rare' : '' },
+        entryIcon(e, 18),
+        h('div', null, h('div', { class: 'name' }, entryTitle(e)), h('div', { class: 'desc' }, entryDetail(e))),
+        h(
+          'button',
+          {
+            class: 'btn small danger',
+            onclick: async () => {
+              if (!(await ask(`${e.name} を捨てる？`, '捨てる'))) return;
+              removeFromInventory(run, i);
+              app.save();
+              rerender();
+            },
+          },
+          '捨てる',
+        ),
+      ),
+    ),
+  );
+}
+
+/** 拾える物と持ち物を1つの窓に並べる */
+function pickupWindow(app: App, drops: InvEntry[], rerender: () => void) {
+  const run = app.run!;
+  return h(
+    'div',
+    { class: 'win grow scroll' },
+    h('div', { class: 'section-title' }, `拾える物（${drops.length}）`),
+    dropsList(app, drops, rerender),
+    h('div', { class: 'section-title', style: 'margin-top:10px' }, `持ち物（${run.inventory.length}/${inventoryLimit(run)}）`),
+    inventoryList(app, rerender),
+  );
+}
+
+function leaveButton(label: string, drops: InvEntry[], go: () => void) {
   return h(
     'button',
     {
       class: 'btn primary wide',
       onclick: async () => {
-        const left = drops.length - taken.size;
-        if (left > 0 && !(await ask(`拾っていない物が${left}個ある。置いていく？`, '置いていく'))) return;
+        if (drops.length > 0 && !(await ask(`拾っていない物が${drops.length}個ある。置いていく？`, '置いていく'))) return;
         go();
       },
     },
@@ -91,8 +135,8 @@ function leaveButton(label: string, drops: InvEntry[], taken: Set<number>, go: (
 export function rewardScreen(app: App, screen: { title: string; rewards: Rewards; boss: boolean }) {
   const run = app.run!;
   const root = h('div', { class: 'screen' });
-  const taken = new Set<number>();
   const r = screen.rewards;
+  const drops = [...r.drops];
   const render = () => {
     root.replaceChildren(
       topBar(app, render),
@@ -105,8 +149,8 @@ export function rewardScreen(app: App, screen: { title: string; rewards: Rewards
         r.levelUps.map((l) => h('p', { class: 'levelup' }, `${l.name} は Lv${l.level} になった`)),
         screen.boss ? h('p', { class: 'levelup' }, 'パーティー全員のHP・MPが全回復した') : null,
       ),
-      h('div', { class: 'win grow scroll' }, h('div', { class: 'section-title' }, '拾える物'), dropsList(app, r.drops, render, taken)),
-      leaveButton(run.recruits ? '仲間を選ぶ' : run.blessingChoices ? '加護を選ぶ' : 'マップへ', r.drops, taken, () => {
+      pickupWindow(app, drops, render),
+      leaveButton(run.recruits ? '仲間を選ぶ' : run.blessingChoices ? '加護を選ぶ' : 'マップへ', drops, () => {
         app.save();
         app.go(resumeScreen(run));
       }),
@@ -119,15 +163,15 @@ export function rewardScreen(app: App, screen: { title: string; rewards: Rewards
 export function lootScreen(app: App, screen: { title: string; text: string; drops: InvEntry[] }) {
   const run = app.run!;
   const root = h('div', { class: 'screen' });
-  const taken = new Set<number>();
+  const drops = [...screen.drops];
   const render = () =>
     root.replaceChildren(
       topBar(app, render),
       partyGrid(run),
       scene(run.floor, [icon('treasure', 56)]),
       h('div', { class: 'win' }, h('div', { class: 'win-title' }, screen.title), h('p', { class: 'win-sub' }, screen.text)),
-      h('div', { class: 'win grow scroll' }, dropsList(app, screen.drops, render, taken)),
-      leaveButton('マップへ', screen.drops, taken, () => {
+      pickupWindow(app, drops, render),
+      leaveButton('マップへ', drops, () => {
         app.save();
         app.go({ name: 'map' });
       }),

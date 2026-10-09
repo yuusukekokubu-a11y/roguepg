@@ -124,7 +124,7 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
       return h('div', { class: 'win cmdwin' }, h('button', { class: 'btn primary wide', onclick: finish }, 'つぎへ'));
     }
     const u = battle.current;
-    if (battle.phase !== 'input' || !u) return h('div', { class: 'win cmdwin' }, h('div', { class: 'cmd-title' }, '……'), h('div', { style: 'height:68px' }));
+    if (battle.phase !== 'input' || !u) return h('div', { class: 'win cmdwin' }, h('div', { class: 'cmd-title' }, '……'));
     const who = u.char!.isHero ? '主人公' : u.name;
     const head = h(
       'div',

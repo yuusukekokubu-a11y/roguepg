@@ -31,9 +31,10 @@ import {
 import { STATS, STAT_LABEL } from '../../engine/types';
 import { resumeScreen, type App } from '../app';
 import { entryIcon, floorBackground, icon, jobArt } from '../art';
-import { ask, choose, h, toast } from '../dom';
+import { ask, choose, countUp, h, toast } from '../dom';
 import { entryDetail, entryTitle, isRare, skillLine, traitLine } from '../describe';
 import type { IconName } from '../pixel/icons';
+import { inventoryView, markFresh } from '../inventory';
 import { partyGrid, topBar } from './party';
 
 /** 場面の絵：層の背景の上に、主役のドット絵を並べる */
@@ -52,12 +53,20 @@ interface PickState {
   pick: RewardPick;
   chosen: string | null;
   skipped: boolean;
+  /** カードを配る演出を済ませたか（作り直しのたびに配り直さない） */
+  dealt?: boolean;
 }
+
+/** 選んでから持ち物に入るまでの演出中は、ほかのカードを押せない */
+let taking = false;
 
 function picksBlock(app: App, states: PickState[], rerender: () => void) {
   const run = app.run!;
+  let order = 0;
   return states.map((st) => {
     const done = st.chosen !== null || st.skipped;
+    const deal = !st.dealt;
+    st.dealt = true;
     return h(
       'div',
       { class: 'pick-group' },
@@ -71,12 +80,23 @@ function picksBlock(app: App, states: PickState[], rerender: () => void) {
               h(
                 'button',
                 {
-                  class: `reward-card ${isRare(e) ? 'rare' : ''}`,
-                  onclick: () => {
+                  class: `reward-card ${isRare(e) ? 'rare' : ''} ${deal ? 'deal' : ''}`,
+                  style: deal ? `animation-delay:${order++ * 90}ms` : '',
+                  onclick: (ev: Event) => {
+                    if (taking) return;
                     if (!addToInventory(run, e)) return toast('持ち物がいっぱい。下の持ち物から捨てて空きを作ろう');
+                    markFresh(e);
                     st.chosen = e.name;
                     app.save();
-                    rerender();
+                    // 選んだカードを光らせ、ほかを暗くしてから持ち物へ
+                    const card = ev.currentTarget as HTMLElement;
+                    card.classList.add('taking');
+                    card.parentElement?.classList.add('decided');
+                    taking = true;
+                    setTimeout(() => {
+                      taking = false;
+                      rerender();
+                    }, 380);
                   },
                 },
                 entryIcon(e, 24),
@@ -103,31 +123,23 @@ function picksBlock(app: App, states: PickState[], rerender: () => void) {
 /** 今の持ち物（空きを作るために捨てられる） */
 function inventoryList(app: App, rerender: () => void) {
   const run = app.run!;
-  if (run.inventory.length === 0) return h('p', { class: 'muted small' }, '何も持っていない');
-  return h(
-    'ul',
-    { class: 'list' },
-    run.inventory.map((e, i) =>
+  return inventoryView(
+    run,
+    (r) =>
       h(
-        'li',
-        { class: isRare(e) ? 'rare' : '' },
-        entryIcon(e, 18),
-        h('div', null, h('div', { class: 'name' }, entryTitle(e)), h('div', { class: 'desc' }, entryDetail(e))),
-        h(
-          'button',
-          {
-            class: 'btn small danger',
-            onclick: async () => {
-              if (!(await ask(`${e.name} を捨てる？`, '捨てる'))) return;
-              removeFromInventory(run, i);
-              app.save();
-              rerender();
-            },
+        'button',
+        {
+          class: 'btn small danger',
+          onclick: async () => {
+            if (!(await ask(`${r.entry.name} を${r.count > 1 ? '1つ' : ''}捨てる？`, '捨てる'))) return;
+            removeFromInventory(run, r.index);
+            app.save();
+            rerender();
           },
-          '捨てる',
-        ),
+        },
+        '捨てる',
       ),
-    ),
+    rerender,
   );
 }
 
@@ -163,17 +175,21 @@ export function rewardScreen(app: App, screen: { title: string; rewards: Rewards
   const root = h('div', { class: 'screen' });
   const r = screen.rewards;
   const states: PickState[] = r.picks.map((pick) => ({ pick, chosen: null, skipped: false }));
+  // 最初の1回だけ、経験値・お金を数え上げ、レベルアップを順に出す
+  let first = true;
   const render = () => {
+    const intro = first;
+    first = false;
     root.replaceChildren(
       topBar(app, render),
       partyGrid(run),
       h(
         'div',
-        { class: 'win' },
+        { class: `win reward-head ${intro ? 'intro' : ''}` },
         h('div', { class: 'win-title' }, screen.title),
-        h('p', { class: 'win-sub' }, `経験値 ${r.exp}　お金 ${r.gold}G`),
-        r.levelUps.map((l) => h('p', { class: 'levelup' }, `${l.name} は Lv${l.level} になった`)),
-        screen.boss ? h('p', { class: 'levelup' }, 'パーティー全員のHP・MPが全回復した') : null,
+        h('p', { class: 'win-sub' }, '経験値 ', intro ? countUp(r.exp) : `${r.exp}`, '　お金 ', intro ? countUp(r.gold, 600, 'G') : `${r.gold}G`),
+        r.levelUps.map((l, i) => h('p', { class: 'levelup', style: intro ? `animation-delay:${450 + i * 150}ms` : 'animation:none' }, `${l.name} は Lv${l.level} になった`)),
+        screen.boss ? h('p', { class: 'levelup', style: intro ? '' : 'animation:none' }, 'パーティー全員のHP・MPが全回復した') : null,
       ),
       pickupWindow(app, states, render),
       leaveButton(run.recruits ? '仲間を選ぶ' : run.blessingChoices ? '加護を選ぶ' : 'マップへ', states, () => {
@@ -190,17 +206,21 @@ export function lootScreen(app: App, screen: { title: string; text: string; pick
   const run = app.run!;
   const root = h('div', { class: 'screen' });
   const states: PickState[] = screen.picks.map((pick) => ({ pick, chosen: null, skipped: false }));
-  const render = () =>
+  let first = true;
+  const render = () => {
+    const intro = first;
+    first = false;
     root.replaceChildren(
       topBar(app, render),
       partyGrid(run),
-      h('div', { class: 'win' }, h('div', { class: 'char-head' }, icon('treasure', 36), h('div', null, h('div', { class: 'win-title' }, screen.title), h('p', { class: 'win-sub' }, screen.text)))),
+      h('div', { class: 'win' }, h('div', { class: `char-head ${intro ? 'chest-open' : ''}` }, icon('treasure', 36), h('div', null, h('div', { class: 'win-title' }, screen.title), h('p', { class: 'win-sub' }, screen.text)))),
       pickupWindow(app, states, render),
       leaveButton('マップへ', states, () => {
         app.save();
         app.go({ name: 'map' });
       }),
     );
+  };
   render();
   return root;
 }
@@ -259,33 +279,25 @@ export function shopScreen(app: App) {
                 ),
               ),
             )
-          : run.inventory.length === 0
-            ? h('p', { class: 'muted small' }, '売る物がない')
-            : h(
-                'ul',
-                { class: 'list' },
-                run.inventory.map((e, i) =>
-                  h(
-                    'li',
-                    null,
-                    entryIcon(e, 18),
-                    h('div', null, h('div', { class: 'name' }, entryTitle(e)), h('div', { class: 'desc' }, entryDetail(e))),
-                    h(
-                      'button',
-                      {
-                        class: 'btn small',
-                        onclick: () => {
-                          const p = sell(run, i);
-                          toast(`${e.name} を ${p}G で売った`);
-                          app.save();
-                          render();
-                        },
-                      },
-                      `売る ${sellPrice(run, e)}G`,
-                    ),
-                  ),
+          : inventoryView(
+              run,
+              (r) =>
+                h(
+                  'button',
+                  {
+                    class: 'btn small',
+                    onclick: () => {
+                      const p = sell(run, r.index);
+                      toast(`${r.entry.name} を ${p}G で売った`);
+                      app.save();
+                      render();
+                    },
+                  },
+                  `売る ${sellPrice(run, r.entry)}G`,
                 ),
-              ),
+              render,
+              '売る物がない',
+            ),
       ),
       h(
         'button',

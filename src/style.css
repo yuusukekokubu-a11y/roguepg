@@ -1580,3 +1580,225 @@ button:focus-visible {
     animation-duration: 0.01s;
   }
 }
+
+/* ───────── 画面の切り替え ───────── */
+.screen-enter {
+  animation: screen-in 0.22s ease-out both;
+}
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* ───────── マップの演出 ───────── */
+.map-frame {
+  position: relative;
+}
+.map-svg.moving .node.available:not(.chosen) {
+  opacity: 0.35;
+  transition: opacity 0.2s;
+}
+.map-svg.moving .node.available:not(.chosen) .node-bg {
+  animation: none;
+}
+.node.chosen .node-bg {
+  stroke: var(--ink);
+  stroke-width: 4;
+  animation: node-chosen 0.48s ease-out both;
+}
+.node.chosen image {
+  animation: node-chosen-img 0.48s ease-out both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@keyframes node-chosen {
+  0% {
+    fill: var(--gold);
+  }
+  100% {
+    fill: var(--window-deep);
+  }
+}
+@keyframes node-chosen-img {
+  30% {
+    transform: scale(1.35);
+  }
+}
+.edge.going {
+  stroke: var(--gold);
+  stroke-width: 3;
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: draw-path 0.4s ease-out forwards;
+}
+@keyframes draw-path {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.floor-banner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(8, 7, 11, 0.85) 0%, rgba(8, 7, 11, 0.5) 45%, rgba(8, 7, 11, 0) 75%);
+  animation: floor-banner 2s ease-in-out both;
+}
+.floor-banner b {
+  font-size: 2rem;
+  color: var(--gold);
+  letter-spacing: 0.2em;
+  text-shadow: 0 2px 0 #000;
+}
+.floor-banner span {
+  font-size: 0.95rem;
+  color: var(--ink);
+  letter-spacing: 0.3em;
+  text-shadow: 0 2px 0 #000;
+}
+@keyframes floor-banner {
+  0% {
+    opacity: 0;
+  }
+  15%,
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* ───────── 報酬の演出 ───────── */
+.reward-card.deal {
+  animation: deal 0.35s ease-out both;
+}
+@keyframes deal {
+  from {
+    opacity: 0;
+    transform: translateY(14px) rotate(-2deg);
+  }
+}
+.reward-options.decided .reward-card:not(.taking) {
+  opacity: 0.25;
+  transition: opacity 0.2s;
+}
+.reward-card.taking {
+  animation: take 0.38s ease-out both;
+  box-shadow: inset 0 0 0 2px var(--gold), 0 0 14px rgba(212, 168, 74, 0.6);
+}
+@keyframes take {
+  40% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: translateY(18px) scale(0.9);
+    opacity: 0.2;
+  }
+}
+.taken {
+  animation: fade-in 0.3s ease-out both;
+}
+.reward-head.intro .win-title {
+  animation: title-pop 0.4s ease-out both;
+}
+@keyframes title-pop {
+  from {
+    opacity: 0;
+    transform: scale(1.3);
+    letter-spacing: 0.4em;
+  }
+}
+.levelup {
+  animation: levelup 0.5s ease-out both;
+}
+@keyframes levelup {
+  0% {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  50% {
+    opacity: 1;
+    text-shadow: 0 0 8px var(--gold);
+  }
+}
+.chest-open > img.px:first-child,
+.chest-open > :first-child {
+  animation: chest 0.6s steps(6) both;
+}
+@keyframes chest {
+  20% {
+    transform: rotate(-8deg);
+  }
+  40% {
+    transform: rotate(8deg);
+  }
+  60% {
+    transform: translateY(-6px) scale(1.15);
+    filter: brightness(1.8);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* ───────── 持ち物（種類分け） ───────── */
+.inv-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 2px 0 6px;
+}
+.chip-tab {
+  padding: 3px 8px;
+  font-size: 0.66rem;
+  color: var(--dim);
+  background: var(--window-deep);
+  box-shadow: inset 0 0 0 1px var(--rule-dim);
+}
+.chip-tab.active {
+  color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+.inv-list li.inv-head {
+  display: block;
+  padding: 6px 0 2px;
+  font-size: 0.66rem;
+  color: var(--gold);
+  border-bottom: 1px solid var(--rule-dim);
+  background: none;
+}
+.inv-list .count {
+  color: var(--gold);
+  font-size: 0.8em;
+}
+.inv-list li.fresh {
+  animation: fresh 1.2s ease-out both;
+}
+@keyframes fresh {
+  0%,
+  40% {
+    background: rgba(212, 168, 74, 0.25);
+  }
+  100% {
+    background: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen-enter,
+  .floor-banner,
+  .reward-card.deal,
+  .reward-card.taking,
+  .levelup,
+  .chest-open > :first-child,
+  .edge.going {
+    animation-duration: 0.01s;
+  }
+}

@@ -96,3 +96,16 @@ export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export async function ask(message: string, yes = 'はい'): Promise<boolean> {
   return (await choose(message, [{ label: yes, value: true }])) === true;
 }
+
+/** 数字を 0 から数え上げて表示する（報酬の演出） */
+export function countUp(value: number, ms = 600, suffix = ''): HTMLElement {
+  const el = h('span', { class: 'count-up' }, `0${suffix}`);
+  const start = performance.now();
+  const step = (now: number) => {
+    const t = Math.min(1, (now - start) / ms);
+    el.textContent = `${Math.round(value * (1 - Math.pow(1 - t, 3)))}${suffix}`;
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+  return el;
+}

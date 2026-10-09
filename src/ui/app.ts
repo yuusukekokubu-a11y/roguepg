@@ -31,13 +31,27 @@ export interface App {
 type Renderer = (app: App, screen: never) => HTMLElement | Promise<HTMLElement>;
 
 export function createApp(root: HTMLElement, screens: Record<Screen['name'], Renderer>): App {
+  // 画面が切り替わった直後は、少しのあいだタップを受け付けない（前の画面での連打が次の画面に届かないように）
+  let lockedUntil = 0;
+  root.addEventListener(
+    'click',
+    (e) => {
+      if (performance.now() < lockedUntil) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    },
+    true,
+  );
   const app: App = {
     run: null,
     root,
     go(screen) {
       const render = screens[screen.name] as (app: App, s: Screen) => HTMLElement | Promise<HTMLElement>;
       Promise.resolve(render(app, screen)).then((el) => {
+        el.classList.add('screen-enter');
         root.replaceChildren(el);
+        lockedUntil = performance.now() + 250;
         window.scrollTo(0, 0);
       });
     },

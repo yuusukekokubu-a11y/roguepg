@@ -28,6 +28,16 @@ export function mapScreen(app: App) {
   const next = new Set(choices(run).map((n) => n.id));
   const visited = new Set(run.visited);
 
+  // 選んだマスを光らせ、道をなぞってから移る（連打で2回進まないよう、1回だけ受け付ける）
+  let moving = false;
+  const choose = (n: MapNode, g: SVGElement) => {
+    if (moving) return;
+    moving = true;
+    g.classList.add('chosen');
+    mapSvg.classList.add('moving');
+    mapSvg.querySelector(`[data-edge="${run.current}-${n.id}"]`)?.classList.add('going');
+    setTimeout(() => enter(n), 480);
+  };
   const enter = (n: MapNode) => {
     moveTo(run, n.id);
     switch (n.type) {
@@ -63,7 +73,7 @@ export function mapScreen(app: App) {
       const a = pos(n);
       const b = pos(m);
       const walked = visited.has(n.id) && visited.has(m.id);
-      lines.push(svg('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: `edge ${walked ? 'walked' : ''}` }));
+      lines.push(svg('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, class: `edge ${walked ? 'walked' : ''}`, 'data-edge': `${n.id}-${m.id}` }));
     }
   }
   const nodes = map.nodes.map((n) => {
@@ -80,7 +90,7 @@ export function mapScreen(app: App) {
     const title = svg('title', {});
     title.textContent = NODE_INFO[n.type].label;
     g.appendChild(title);
-    if (next.has(n.id)) g.addEventListener('click', () => enter(n));
+    if (next.has(n.id)) g.addEventListener('click', () => choose(n, g));
     return g;
   });
 
@@ -101,7 +111,14 @@ export function mapScreen(app: App) {
     topBar(app, () => app.go({ name: 'map' })),
     partyGrid(run),
     h('div', { class: 'map-head' }, h('h2', null, `${run.floor}層　${floor.place}`), h('p', { class: 'tip' }, `有利：${floor.builds}`)),
-    h('div', { class: 'win map-frame grow' }, h('img', { class: 'px map-bg', src: floorBackground(run.floor), alt: '' }), scroller),
+    h(
+      'div',
+      { class: 'win map-frame grow' },
+      h('img', { class: 'px map-bg', src: floorBackground(run.floor), alt: '' }),
+      scroller,
+      // 層に入ったばかりのときは、層の名前を大きく出す
+      run.current === null ? h('div', { class: 'floor-banner' }, h('b', null, `${run.floor}層`), h('span', null, floor.place)) : null,
+    ),
     h(
       'div',
       { class: 'legend' },

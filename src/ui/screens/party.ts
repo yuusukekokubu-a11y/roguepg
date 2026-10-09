@@ -18,9 +18,10 @@ import {
 import type { Stat } from '../../engine/types';
 import { STAT_LABEL } from '../../engine/types';
 import type { App } from '../app';
-import { entryIcon, icon, jobArt } from '../art';
+import { icon, jobArt } from '../art';
 import { ask, bar, choose, h, toast } from '../dom';
-import { entryDetail, entryTitle, isRare, skillLine, statsText, traitLine } from '../describe';
+import { entryDetail, skillLine, statsText, traitLine } from '../describe';
+import { inventoryView } from '../inventory';
 
 /** 上の帯：場所・お金・持ち物・メニュー */
 export function topBar(app: App, onChange?: () => void, opts: { menu?: boolean } = {}) {
@@ -210,20 +211,7 @@ function inventoryPanel(run: RunState, rerender: () => void) {
     'div',
     { class: 'win flat' },
     h('div', { class: 'section-title' }, `持ち物（${run.inventory.length}/${inventoryLimit(run)}）`),
-    run.inventory.length === 0 ? h('p', { class: 'muted small' }, '何も持っていない') : null,
-    h(
-      'ul',
-      { class: 'list' },
-      run.inventory.map((e, i) =>
-        h(
-          'li',
-          { class: isRare(e) ? 'rare' : '' },
-          entryIcon(e, 18),
-          h('div', null, h('div', { class: 'name' }, entryTitle(e)), h('div', { class: 'desc' }, entryDetail(e))),
-          h('div', { class: 'actions' }, actionButtons(run, i, rerender)),
-        ),
-      ),
-    ),
+    inventoryView(run, (r) => h('div', { class: 'actions' }, actionButtons(run, r.index, rerender)), rerender),
   );
 }
 

@@ -9,7 +9,7 @@
   --rule: #8c7a55;
   --rule-dim: rgba(140, 122, 85, 0.35);
   --ink: #e6dfcc;
-  --dim: #8a8496;
+  --dim: #a29cb0;
   --gold: #d4a84a;
   --blood: #b8323a;
   --hp: #4fae6e;
@@ -38,6 +38,8 @@ body {
 }
 body {
   margin: 0;
+  color: var(--ink);
+  font-family: var(--font-dot);
   background: var(--night);
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
@@ -263,6 +265,7 @@ button:focus-visible {
 
 /* ───────── バー ───────── */
 .bar {
+  color: var(--ink);
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;

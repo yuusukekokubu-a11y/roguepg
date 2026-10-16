@@ -32,6 +32,7 @@ import {
   forgetSkill,
   forgetPrice,
   addSkillSlot,
+  HEALERS,
   buyPrice,
   type InvEntry,
   type RewardPick,
@@ -208,7 +209,9 @@ export function simulateRun(job: string, seed: number, ascension = 0): SimResult
   const rng0 = new Rng(seed);
   const run = newRun(job, rng0.pick(starterBooks(job)), seed, ascension);
   const rng = new Rng(seed + 1);
-  choosePartner(run, rng.int(0, 2));
+  // 主人公が回復役でなければ、相棒には回復役を選ぶ（人が遊ぶときと同じ判断）
+  const healer = run.recruits!.findIndex((c) => HEALERS[c.job]);
+  choosePartner(run, !HEALERS[job] && healer >= 0 ? healer : rng.int(0, 2));
   return playRun(run, rng);
 }
 

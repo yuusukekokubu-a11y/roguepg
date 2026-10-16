@@ -157,3 +157,15 @@ describe('技の枠（4枠で固定）', () => {
     expect(EVENTS.find((e) => e.id === 'archive')!.choices[0].resolve(ctx).pick).toBe('slot');
   });
 });
+
+describe('最初の相棒の候補', () => {
+  it('候補3人のうち必ず1人は回復役で、回復の技を持っている', async () => {
+    const { HEALERS } = await import('../src/engine/run');
+    for (let seed = 1; seed <= 40; seed++) {
+      const run = newRun('戦士', '強打', seed);
+      const healers = run.recruits!.filter((c) => HEALERS[c.job]);
+      expect(healers.length, `seed ${seed}`).toBeGreaterThan(0);
+      for (const c of healers) expect(c.skills).toContain(HEALERS[c.job]);
+    }
+  });
+});

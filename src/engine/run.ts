@@ -560,14 +560,25 @@ export function useFieldItem(run: RunState, invIndex: number, charId?: string): 
 // ───────────────────────── 層クリア・仲間 ─────────────────────────
 
 /** 仲間の候補。装備は「いまの層（＝加わる前の層）で拾える段階」。ラン開始の相棒は段階0 */
-export function makeRecruits(run: RunState, gearTier = dropTier(run)): Character[] {
+/**
+ * 回復役：最初から回復の技を持てる職業と、その技。
+ * 回復役がいるかどうかで勝率が大きく変わるため、最初の相棒の候補には必ず1人入れる
+ */
+export const HEALERS: Record<string, string> = { 白魔道士: '癒しの光', 赤魔道士: '癒しの風', 錬金術師: '回復薬' };
+
+export function makeRecruits(run: RunState, gearTier = dropTier(run), ensureHealer = false): Character[] {
   const rng = rngOf(run);
   const level = run.party.find((c) => c.isHero)!.level;
   const jobs = rng.sample(JOBS, 3);
+  if (ensureHealer && !jobs.some((j) => HEALERS[j.name])) {
+    const pool = JOBS.filter((j) => HEALERS[j.name]);
+    jobs[rng.int(0, jobs.length - 1)] = rng.pick(pool);
+  }
   return jobs.map((j) => {
     const c = createCharacter(j.name, level, false, j.name);
     const books = starterBooks(j.name);
-    c.skills.push(rng.pick(books));
+    // 相棒の候補の回復役は、回復の技を持って加わる
+    c.skills.push(ensureHealer && HEALERS[j.name] ? HEALERS[j.name] : rng.pick(books));
     // 加入する層に合わせた装備を持ってくる（2層に来る仲間は段階1の装備）
     starterGear(c, gearTier);
     c.row = j.role === 'タンク' || j.lineage === '剣士系' ? 'front' : 'back';
@@ -612,7 +623,7 @@ function addMember(run: RunState, index: number | null) {
 
 /** ラン開始時の2人目の候補を作る */
 export function offerPartner(run: RunState) {
-  run.recruits = makeRecruits(run, 0);
+  run.recruits = makeRecruits(run, 0, true);
 }
 
 /** ラン開始時の2人目を決める（層は進まない） */

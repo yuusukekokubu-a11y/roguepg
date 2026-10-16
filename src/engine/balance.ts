@@ -66,13 +66,13 @@ export const BALANCE = {
 
   /** 敵の強さの層ごとの倍率（全体の難しさのつまみ。atk は魔力にも掛かる） */
   enemyScale: {
-    1: { hp: 1.05, atk: 1.05 },
-    2: { hp: 1.08, atk: 1.06 },
-    3: { hp: 1.1, atk: 1.08 },
-    4: { hp: 1.1, atk: 1.08 },
+    1: { hp: 1.15, atk: 1.12 },
+    2: { hp: 1.22, atk: 1.16 },
+    3: { hp: 1.25, atk: 1.18 },
+    4: { hp: 1.25, atk: 1.18 },
   } as Record<number, { hp: number; atk: number }>,
   /** 2層以降のボスだけにさらに掛ける倍率（消耗戦より山場で難しくする） */
-  bossScale: { hp: 1.15, atk: 1.08 },
+  bossScale: { hp: 1.2, atk: 1.1 },
 
   /** 騎士・盗賊などの技に関わる倍率（職業ごとの差を縮めるための調整） */
   skill: {

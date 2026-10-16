@@ -18,10 +18,10 @@ export const BALANCE = {
   defenseK: 20,
   /** 回復量： 精神 × 倍率 + 固定値 */
   heal: {
-    small: { mul: 1.0, flat: 6 },
-    medium: { mul: 1.8, flat: 12 },
-    large: { mul: 3.0, flat: 22 },
-    huge: { mul: 4.0, flat: 30 },
+    small: { mul: 0.85, flat: 5 },
+    medium: { mul: 1.5, flat: 10 },
+    large: { mul: 2.5, flat: 18 },
+    huge: { mul: 3.4, flat: 26 },
   } as Record<Size, { mul: number; flat: number }>,
   /** アイテム（固定値）のダメージ・回復量 */
   fixedDamage: { small: 14, medium: 28, large: 50, huge: 90 } as Record<Size, number>,

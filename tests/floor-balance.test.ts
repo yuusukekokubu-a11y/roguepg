@@ -20,14 +20,14 @@ it.skipIf(!process.env.FLOOR_SIM)('各層をその層の想定パーティーで
       const rng = new Rng(500 + i * 31);
       const run = newRun(rng.pick(JOBS).name, '強打' , 900 + i);
       run.party = [];
-      // 人数：1層2人、2層3人、3層以降4人。4層は加護つき
+      // 人数：1層2人、2層3人、3層以降4人。4層は加護つき。装備は「前の層で拾える段階」、技は最大4つ（枠が4で固定）
       for (let k = 0; k < Math.min(4, floor + 1); k++) {
         const job = rng.pick(JOBS).name;
         const c = createCharacter(job, LV[floor], k === 0);
         const lin = JOBS.find((j) => j.name === job)!.lineage;
         c.weapon = EQUIPMENT.find((e) => e.lineage === lin && e.slot === 'weapon' && e.tier === floor - 1)!.name;
         c.armor = EQUIPMENT.find((e) => e.lineage === lin && e.slot === 'armor' && e.tier === floor - 1)!.name;
-        c.skills = rng.sample(SKILLS.filter((s) => s.job === job && !s.rare), Math.min(floor + 1, 5)).map((s) => s.name);
+        c.skills = rng.sample(SKILLS.filter((s) => s.job === job && !s.rare), Math.min(floor + 1, 4)).map((s) => s.name);
         const st = characterStats(c); c.hp = st.hp; c.mp = st.mp;
         c.row = ['剣士系'].includes(lin) ? 'front' : 'back';
         run.party.push(c);

@@ -1,7 +1,7 @@
 // バランス確認用：コンピューターが自動でランを遊ぶ。
 // 賢くはないが「素直に遊んだらどのくらい勝てるか」の目安になる。
 
-import { ITEM_BY_NAME, SKILL_BY_NAME } from '../data';
+import { ITEM_BY_NAME, JOB_BY_NAME, SKILL_BY_NAME } from '../data';
 import { Battle, type Command, type Unit } from './battle';
 import { characterStats, skillSlots } from './character';
 import { choiceDisabled, pickEvent, resolveChoice } from './events';
@@ -27,6 +27,12 @@ import {
   starterBooks,
   treasure,
   isPartyDead,
+  inventoryFull,
+  removeFromInventory,
+  forgetSkill,
+  forgetPrice,
+  addSkillSlot,
+  buyPrice,
   type InvEntry,
   type RewardPick,
   type RunState,
@@ -95,38 +101,99 @@ export function runBattle(run: RunState, enemies: string[], kind: BattleKind, rn
   return b;
 }
 
+// ───────────────────────── 持ち物・技の整理（自動プレイ用の素朴な判断） ─────────────────────────
+
+/** 技の価値のめやす：攻撃・回復・蘇生は高め、★レアはさらに高め、補助だけの技は低め */
+function skillValue(name: string): number {
+  const s = SKILL_BY_NAME.get(name)!;
+  let v = s.rare ? 2 : 0;
+  if (s.effects.some((e) => e.kind === 'damage' || e.kind === 'delayed' || e.kind === 'tick')) v += 2;
+  if (s.effects.some((e) => e.kind === 'heal' || e.kind === 'revive')) v += 2.5;
+  if (s.target === 'enemyAll' || s.target === 'allyAll') v += 0.5;
+  return v + 1;
+}
+
+/** その装備が、だれかの今の装備より強いか */
+function gearUpgradeFor(run: RunState, name: string) {
+  const d = equipmentDef(name);
+  return run.party.find((x) => {
+    const cur = d.slot === 'weapon' ? x.weapon : x.armor;
+    return JOB_BY_NAME.get(x.job)!.lineage === d.lineage && (!cur || equipmentDef(cur).tier < d.tier);
+  });
+}
+
+/** その本を、だれが覚えると得か（覚えていない同じ職業の人） */
+function bookReader(run: RunState, name: string) {
+  const s = SKILL_BY_NAME.get(name)!;
+  return run.party.find((x) => x.job === s.job && !x.skills.includes(name));
+}
+
+/** 持っていても使い道のない物か */
+function useless(run: RunState, e: InvEntry): boolean {
+  if (e.kind === 'book') return !bookReader(run, e.name);
+  if (e.kind === 'equip') return !gearUpgradeFor(run, e.name);
+  return false;
+}
+
 /** 手に入れた物をそれなりに使う */
 function manage(run: RunState) {
   for (let i = run.inventory.length - 1; i >= 0; i--) {
     const e = run.inventory[i];
     if (e.kind === 'book') {
-      const c = run.party.find((x) => x.job === SKILL_BY_NAME.get(e.name)!.job && !x.skills.includes(e.name));
+      const c = bookReader(run, e.name);
       if (c && c.skills.length < skillSlots(c)) learnBook(run, i, c.id);
     } else if (e.kind === 'equip') {
-      const d = equipmentDef(e.name);
-      const c = run.party.find((x) => {
-        const cur = d.slot === 'weapon' ? x.weapon : x.armor;
-        return cur && equipmentDef(cur).lineage === d.lineage && equipmentDef(cur).tier < d.tier;
-      });
+      const c = gearUpgradeFor(run, e.name);
       if (c) equip(run, i, c.id);
     } else if (e.kind === 'acc') {
-      const c = run.party.find((x) => x.accessories.includes(null));
-      if (c) equip(run, i, c.id, c.accessories[0] === null ? 0 : 1);
+      const c = run.party.find((x) => x.accessories[1] === null || (x.accessories[0] === null && !x.cursed));
+      if (c) equip(run, i, c.id, c.accessories[0] === null && !c.cursed ? 0 : 1);
     }
   }
 }
 
-/** 報酬の選択肢から、それなりに良さそうな物を1つ取る */
+/** 持ち物がいっぱいなら、使い道のない物から捨てて空きを作る */
+function makeRoom(run: RunState) {
+  for (let i = run.inventory.length - 1; i >= 0 && inventoryFull(run); i--) {
+    if (useless(run, run.inventory[i])) removeFromInventory(run, i);
+  }
+}
+
+/**
+ * 技の枠がいっぱいの人に、より良い本があれば、いちばん弱い技を忘れて入れ替える。
+ * price：1回の値段（休憩所・イベントは 0）。limit：入れ替える最大回数。入れ替えた回数を返す
+ */
+function swapSkills(run: RunState, price: number, limit = 99): number {
+  let n = 0;
+  for (let i = run.inventory.length - 1; i >= 0 && n < limit; i--) {
+    const e = run.inventory[i];
+    if (e.kind !== 'book') continue;
+    const c = bookReader(run, e.name);
+    if (!c || c.skills.length < skillSlots(c)) continue;
+    const worst = [...c.skills].sort((a, b) => skillValue(a) - skillValue(b))[0];
+    if (skillValue(e.name) <= skillValue(worst) || run.gold < price) continue;
+    forgetSkill(run, c.id, worst, price);
+    learnBook(run, i, c.id);
+    n++;
+  }
+  return n;
+}
+
+/** 報酬の選択肢から、いちばん役に立ちそうな物を1つ取る */
 function takeBest(run: RunState, pick: RewardPick) {
-  const jobs = run.party.map((c) => c.job);
   const score = (e: InvEntry) => {
-    if (e.kind === 'book') return jobs.includes(SKILL_BY_NAME.get(e.name)!.job) ? 3 : 0;
-    if (e.kind === 'acc') return 2;
-    if (e.kind === 'equip') return 1.5;
-    return 1;
+    if (e.kind === 'book') return bookReader(run, e.name) ? skillValue(e.name) : 0;
+    if (e.kind === 'equip') {
+      if (!gearUpgradeFor(run, e.name)) return 0;
+      return 3 + equipmentDef(e.name).tier * 0.3;
+    }
+    if (e.kind === 'acc') return run.party.some((x) => x.accessories.includes(null)) ? 2.5 : 1;
+    return ITEM_BY_NAME.get(e.name)?.effects.some((x) => x.kind === 'heal' || x.kind === 'revive') ? 1.5 : 0.8;
   };
   const best = [...pick.options].sort((a, b) => score(b) - score(a))[0];
-  if (best) addToInventory(run, best);
+  if (!best || score(best) <= 0) return;
+  makeRoom(run);
+  addToInventory(run, best);
 }
 
 export interface SimResult {
@@ -177,6 +244,8 @@ export function playRun(run: RunState, rng: Rng, lastFloor = 99): SimResult {
         break;
       }
       case 'rest': {
+        // 休憩所では無料で技を入れ替えられる
+        swapSkills(run, 0);
         // 元気なら鍛える（いちばん能力の高い攻撃手段を伸ばす）、弱っていたら休む
         if (hpRatio > 0.8) {
           const c = rng.pick(run.party.filter((x) => x.hp > 0));
@@ -190,17 +259,28 @@ export function playRun(run: RunState, rng: Rng, lastFloor = 99): SimResult {
         break;
       case 'shop': {
         const shop = openShop(run);
-        const jobs = run.party.map((c) => c.job);
-        shop.goods.forEach((g, i) => {
-          if (g.entry.kind === 'book' && jobs.includes(SKILL_BY_NAME.get(g.entry.name)!.job)) buy(run, i);
-          if (g.entry.name === '薬草' || g.entry.name === '回復薬') buy(run, i);
-        });
+        // 強化になる装備 → 覚える人がいる本 → 回復薬 の順に、買えるだけ買う
+        const want = (e: InvEntry) =>
+          e.kind === 'equip' ? (gearUpgradeFor(run, e.name) ? 3 : 0) : e.kind === 'book' ? (bookReader(run, e.name) ? skillValue(e.name) / 2 : 0) : e.name === '薬草' || e.name === '回復薬' ? 1 : 0;
+        const order = shop.goods.map((g, i) => ({ g, i })).filter((x) => !x.g.sold && want(x.g.entry) > 0).sort((a, b) => want(b.g.entry) - want(a.g.entry));
+        for (const { g, i } of order) {
+          if (run.gold < buyPrice(run, g.entry)) continue;
+          makeRoom(run);
+          buy(run, i);
+          manage(run);
+        }
+        swapSkills(run, forgetPrice(run), 1);
         break;
       }
       case 'event': {
         const pick = pickEvent(run);
         const ok = pick.event.choices.map((_, i) => i).filter((i) => !choiceDisabled(run, pick, i));
         const out = resolveChoice(run, pick, ok.length > 0 ? rng.pick(ok) : pick.event.choices.length - 1);
+        if (out.pick === 'forget') swapSkills(run, 0, 1);
+        if (out.pick === 'slot') {
+          const c = run.party.find((x) => run.inventory.some((e) => e.kind === 'book' && bookReader(run, e.name) === x)) ?? run.party[0];
+          addSkillSlot(run, c.id);
+        }
         if (out.battle) {
           const b = runBattle(run, out.battle, 'normal', rng);
           const r = b.finish();

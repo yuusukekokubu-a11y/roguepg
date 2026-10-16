@@ -243,13 +243,27 @@ button:focus-visible {
   letter-spacing: 0.04em;
   min-height: 22px;
 }
-.topbar .place {
-  color: var(--ink);
-}
-.topbar .right {
+.topbar .left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  min-width: 0;
+}
+.topbar .left .asc-chip {
+  flex: none;
+}
+.topbar .place {
+  color: var(--ink);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar .right {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
 }
 .stat-chip {
   display: inline-flex;
@@ -514,7 +528,8 @@ button:focus-visible {
   position: relative;
   text-align: center;
   margin-bottom: auto;
-  margin-top: 14vh;
+  /* 背景の月の下にロゴが来るように */
+  margin-top: 25vh;
 }
 .title-logo h1 {
   font-size: clamp(1.6rem, 8.6vw, 2.5rem);
@@ -684,11 +699,15 @@ button:focus-visible {
   gap: 8px;
 }
 .map-head h2 {
+  flex: none;
   font-size: 1rem;
   color: var(--gold);
+  white-space: nowrap;
 }
 .map-head p {
+  min-width: 0;
   font-size: 0.62rem;
+  line-height: 1.4;
   color: var(--dim);
   text-align: right;
 }
@@ -776,6 +795,19 @@ button:focus-visible {
   gap: 4px;
   padding: 6px 8px;
   overflow: hidden;
+}
+/* 行動順のアイコン列：入りきらない分は右端で薄く消える（途中で切れて見えないように） */
+.order-chips {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0 4px;
+  margin: -6px 0 -4px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, #000 82%, transparent);
+  mask-image: linear-gradient(to right, #000 82%, transparent);
 }
 .order-label {
   font-size: 0.6rem;
@@ -957,6 +989,14 @@ button:focus-visible {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* 変異個体の「毒をまとう」などは名前の上に小さく出す（名前が切れないように） */
+.plate .vprefix {
+  display: block;
+  font-size: 0.5rem;
+  line-height: 1.2;
+  color: #e0a040;
+  white-space: nowrap;
 }
 .plate .bar {
   grid-template-columns: 1fr;
@@ -1186,8 +1226,10 @@ button:focus-visible {
 /* ───────── イベント・報酬など ───────── */
 .scene {
   position: relative;
-  flex: none;
-  height: 132px;
+  /* 縦に余った分は絵を大きく見せる（文章の窓だけが間延びしないように） */
+  flex: 1 1 132px;
+  min-height: 132px;
+  max-height: 38vh;
   overflow: hidden;
   box-shadow: inset 0 0 0 2px var(--rule);
 }
@@ -1240,7 +1282,8 @@ button:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 0.62rem;
+  font-size: 0.7rem;
+  white-space: nowrap;
   color: var(--gold);
   box-shadow: inset 0 0 0 1px rgba(212, 168, 74, 0.6);
   padding: 1px 4px;
@@ -1344,14 +1387,23 @@ button:focus-visible {
     line-height: 1.5;
     padding: 5px 12px;
   }
+  /* 低い画面では、コマンドの補足（MP+10 など）を横に並べて2行に収める */
   .cmds .menu-item {
-    padding-block: 4px;
+    padding-block: 3px;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 3px;
+    font-size: 0.88rem;
+  }
+  .cmds .menu-item,
+  .cmds .menu-item small {
+    white-space: nowrap;
   }
   :root {
     --cmd-h: 106px;
   }
   .scene {
-    height: 100px;
+    min-height: 100px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1909,4 +1961,24 @@ button:focus-visible {
 .head-buttons {
   display: flex;
   gap: 6px;
+}
+
+/* お金の単位 G：ドット文字だと 6 に見えるので、細い別の書体で小さく */
+.cur {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.78em;
+  font-weight: bold;
+  margin-left: 1px;
+  letter-spacing: 0;
+}
+
+/* 幅の狭いスマホでは、上の帯を少し詰める（場所名が切れないように） */
+@media (max-width: 380px) {
+  .topbar {
+    font-size: 0.72rem;
+    gap: 6px;
+  }
+  .topbar .right {
+    gap: 6px;
+  }
 }

@@ -30,4 +30,11 @@ const moveCursor = (e: Event) => {
 };
 for (const type of ['pointerover', 'pointerdown', 'focusin']) document.addEventListener(type, moveCursor);
 
+// 調査用：URL に ?debug を付けたときだけ、画面を直接開ける入口を用意する（普通に遊ぶときは何もしない）
+if (new URLSearchParams(location.search).has('debug')) {
+  void Promise.all([import('./engine/run'), import('./engine/events'), import('./engine/character')]).then(([run, events, character]) => {
+    (window as unknown as { __debug: unknown }).__debug = { app, run, events, character };
+  });
+}
+
 app.go({ name: 'title' });

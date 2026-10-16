@@ -83,7 +83,11 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
         { class: cls, type: 'button', onclick: onUnit(u), 'data-uid': u.uid },
         intent ? h('span', { class: `intent ${intent.kind}` }, intent.label) : null,
         art,
-        h('span', { class: 'plate' }, h('span', { class: 'pname' }, u.name), bar(u.hp, battle.maxHp(u), 'hp', false), statusBadges(u).length ? h('span', { class: 'badges' }, statusBadges(u)) : null),
+        h(
+          'span',
+          { class: 'plate' },
+          u.variant ? h('span', { class: 'vprefix' }, u.variant.prefix) : null,
+          h('span', { class: 'pname' }, u.variant ? u.name.slice(u.variant.prefix.length) : u.name), bar(u.hp, battle.maxHp(u), 'hp', false), statusBadges(u).length ? h('span', { class: 'badges' }, statusBadges(u)) : null),
       );
     };
     const infoUnit = enemies.find((u) => u.uid === infoUid && u.hp > 0);
@@ -104,7 +108,7 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
         'div',
         { class: 'win order', 'aria-label': '行動順' },
         h('span', { class: 'order-label' }, '行動順'),
-        order.map((o, i) => [
+        h('div', { class: 'order-chips' }, order.map((o, i) => [
           i ? h('span', { class: 'arrow' }, '›') : null,
           h(
             'span',
@@ -113,7 +117,7 @@ export function battleScreen(app: App, screen: { enemies: string[]; kind: 'norma
             letter(o.unit),
             o.charging ? h('span', { class: 'charge' }, '溜め') : null,
           ),
-        ]),
+        ])),
       ),
       h(
         'div',

@@ -31,11 +31,32 @@ export function topBar(app: App, onChange?: () => void, opts: { menu?: boolean }
   return h(
     'div',
     { class: 'topbar' },
-    h('span', { class: 'place' }, `${run.floor}層 ${floor.place}`, run.ascension ? h('span', { class: 'asc-chip', title: `アセンション${run.ascension}` }, `A${run.ascension}`) : null),
+    h(
+      'span',
+      { class: 'left' },
+      h('span', { class: 'place' }, `${run.floor}層 ${floor.place}`),
+      run.ascension ? h('span', { class: 'asc-chip', title: `アセンション${run.ascension}` }, `A${run.ascension}`) : null,
+    ),
     h(
       'span',
       { class: 'right' },
-      (run.blessings ?? []).map((n) => h('span', { class: 'blessing-chip', title: BLESSING_BY_NAME.get(n)!.text }, icon('blessing', 12), n.replace('の加護', ''))),
+      // 加護は1つの印にまとめる（並べると帯が詰まって崩れるため）。押すと中身が見られる
+      run.blessings?.length
+        ? h(
+            'button',
+            {
+              class: 'blessing-chip',
+              title: run.blessings.join('、'),
+              onclick: () =>
+                choose(
+                  '受けている加護',
+                  run.blessings!.map((n) => ({ label: n, value: n, note: BLESSING_BY_NAME.get(n)!.text })),
+                ),
+            },
+            icon('blessing', 12),
+            `${run.blessings.length}`,
+          )
+        : null,
       h('span', { class: 'stat-chip gold' }, icon('gold', 14), `${run.gold}G`),
       h('span', { class: 'stat-chip' }, icon('item', 14), `${run.inventory.length}/${inventoryLimit(run)}`),
       opts.menu === false ? null : h('button', { class: 'btn small', onclick: () => openParty(app, onChange) }, 'メニュー'),

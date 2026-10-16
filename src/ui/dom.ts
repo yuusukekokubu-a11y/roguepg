@@ -23,8 +23,29 @@ function append(el: Node, children: Child[]) {
   for (const c of children) {
     if (c === null || c === undefined || c === false) continue;
     if (Array.isArray(c)) append(el, c);
-    else el.appendChild(typeof c === 'string' || typeof c === 'number' ? document.createTextNode(String(c)) : c);
+    else if (typeof c === 'string' || typeof c === 'number') appendText(el, String(c));
+    else el.appendChild(c);
   }
+}
+
+/**
+ * 文字を入れる。ドット文字の「G」は「6」に見えて「54G」が「546」と読めてしまうので、
+ * 数字のあとの G（お金の単位）だけ別の書体で小さく出す
+ */
+function appendText(el: Node, text: string) {
+  const parts = text.split(/(?<=\d)G/);
+  parts.forEach((t, i) => {
+    if (t) el.appendChild(document.createTextNode(t));
+    if (i < parts.length - 1) el.appendChild(currencyMark());
+  });
+}
+
+/** お金の単位「G」（別の書体で小さく） */
+function currencyMark(): HTMLElement {
+  const g = document.createElement('span');
+  g.className = 'cur';
+  g.textContent = 'G';
+  return g;
 }
 
 export function svg(tag: string, attrs: Record<string, string | number>, ...children: (SVGElement | null)[]): SVGElement {
@@ -99,11 +120,14 @@ export async function ask(message: string, yes = 'はい'): Promise<boolean> {
 
 /** 数字を 0 から数え上げて表示する（報酬の演出） */
 export function countUp(value: number, ms = 600, suffix = ''): HTMLElement {
-  const el = h('span', { class: 'count-up' }, `0${suffix}`);
+  const num = h('span', null, '0');
+  const el = h('span', { class: 'count-up' }, num);
+  if (suffix === 'G') el.appendChild(currencyMark());
+  else if (suffix) el.append(suffix);
   const start = performance.now();
   const step = (now: number) => {
     const t = Math.min(1, (now - start) / ms);
-    el.textContent = `${Math.round(value * (1 - Math.pow(1 - t, 3)))}${suffix}`;
+    num.textContent = `${Math.round(value * (1 - Math.pow(1 - t, 3)))}`;
     if (t < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);

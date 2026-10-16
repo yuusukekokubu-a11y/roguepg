@@ -8,6 +8,7 @@ import { resumeScreen, type App } from '../app';
 import { floorBackground, icon, jobArt } from '../art';
 import { ask, choose, h } from '../dom';
 import { skillLine, traitLine } from '../describe';
+import { openGuide } from './guide';
 import { ASCENSION_TEXT, MAX_ASCENSION } from '../../data/ascension';
 import { unlockedAscension } from '../../engine/progress';
 
@@ -54,13 +55,14 @@ export function titleScreen(app: App) {
         },
         'はじめから',
       ),
+      h('button', { class: 'menu-item', onclick: () => openGuide() }, '遊び方'),
       h(
         'ul',
         { class: 'howto' },
-        h('li', null, '職業を選び、分かれ道を進んで全4層の魔王の城を目指す'),
-        h('li', null, 'HP・MPは持ち越し。休憩所やアイテムで回復する'),
-        h('li', null, '本を読むと技を覚える。層のボスを倒すと仲間が増える'),
-        h('li', { class: 'muted' }, '全滅したら最初から。引き継ぐものはない'),
+        h('li', null, '職業と相棒を選び、分かれ道を進んで全4層の魔王の城を目指す'),
+        h('li', null, '敵は次の行動を予告する。見てから守るか攻めるかを決める'),
+        h('li', null, '戦利品は3択。本で技を覚え、ボスを倒すと仲間が増える'),
+        h('li', { class: 'muted' }, '全滅したら最初から。クリアすると一段上の難しさが解放される'),
       ),
     ),
   );

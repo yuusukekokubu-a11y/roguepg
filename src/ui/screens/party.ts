@@ -22,6 +22,7 @@ import { icon, jobArt } from '../art';
 import { ask, bar, choose, h, toast } from '../dom';
 import { entryDetail, skillLine, statsText, traitLine } from '../describe';
 import { inventoryView } from '../inventory';
+import { openGuide } from './guide';
 
 /** 上の帯：場所・お金・持ち物・メニュー */
 export function topBar(app: App, onChange?: () => void, opts: { menu?: boolean } = {}) {
@@ -100,7 +101,12 @@ export function openParty(app: App, onChange?: () => void) {
       h(
         'div',
         { class: 'win', style: 'height:100%' },
-        h('div', { class: 'map-head' }, h('h2', null, 'パーティー・持ち物'), h('button', { class: 'btn primary small', onclick: close }, '閉じる')),
+        h(
+          'div',
+          { class: 'map-head' },
+          h('h2', null, 'パーティー・持ち物'),
+          h('span', { class: 'head-buttons' }, h('button', { class: 'btn small', onclick: () => openGuide() }, '遊び方'), h('button', { class: 'btn primary small', onclick: close }, '閉じる')),
+        ),
         h(
           'div',
           { class: 'tabs' },

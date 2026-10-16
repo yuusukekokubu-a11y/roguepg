@@ -1873,3 +1873,40 @@ button:focus-visible {
 .equip-hint.none {
   color: var(--dim);
 }
+
+/* ───────── 遊び方 ───────── */
+.guide-body .win-title {
+  margin-bottom: 4px;
+}
+.guide-p {
+  font-size: 0.74rem;
+  line-height: 1.7;
+  margin: 4px 0 6px;
+}
+.guide-nodes {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0;
+  display: grid;
+  gap: 6px;
+}
+.guide-nodes li {
+  display: grid;
+  grid-template-columns: 20px 4.5em minmax(0, 1fr);
+  gap: 6px;
+  align-items: start;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+.guide-nodes b {
+  color: var(--gold);
+  font-weight: normal;
+}
+.chip-tab img.px {
+  vertical-align: -2px;
+  margin-right: 3px;
+}
+.head-buttons {
+  display: flex;
+  gap: 6px;
+}
